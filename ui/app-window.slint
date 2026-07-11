@@ -2,14 +2,18 @@ import { Button, VerticalBox } from "std-widgets.slint";
 
 export component AppWindow inherits Window {
     in-out property <int> counter: 42;
+    in-out property <string> status-text: "No connection";
     callback request-increase-value();
     VerticalBox {
         Text {
             text: "Counter: \{root.counter}";
         }
+        Text {
+            text: "Status: \{root.status-text}";
+        }
 
         Button {
-            text: "Increase value";
+            text: "Send Ping to Backend";
             clicked => {
                 root.request-increase-value();
             }

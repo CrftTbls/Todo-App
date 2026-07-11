@@ -5,8 +5,27 @@ edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+name = "todo_app_core"
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[[bin]]
+name = "todo_app"
+path = "src/main.rs"
+
 [dependencies]
 slint = "1.16.1"
+rusqlite = { version = "0.31.0", features = ["bundled"] }
+r2d2 = "0.8.10"
+r2d2_sqlite = "0.24.0"
+uuid = { version = "1.8.0", features = ["v4", "serde"] }
+crossbeam-channel = "0.5.12"
+tokio = { version = "1.37.0", features = ["full"] }
+serde = { version = "1.0.198", features = ["derive"] }
+serde_json = "1.0.116"
+chrono = { version = "0.4.38", features = ["serde"] }
+thiserror = "1.0.59"
+sysdirs = "0.9.4"
 
 [build-dependencies]
 slint-build = "1.16.1"
@@ -14,3 +33,4 @@ slint-build = "1.16.1"
 [profile.release]
 codegen-units = 1
 lto = true
+
