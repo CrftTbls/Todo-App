@@ -13,5 +13,8 @@
 # Agent rules
 GEMINI.md
 
-# Rocal Doc
+# Local Doc
 /*.lnk
+
+# Local Agent Task Plan
+/.agent/
