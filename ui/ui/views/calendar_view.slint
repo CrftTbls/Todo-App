@@ -1,0 +1,89 @@
+import { Theme } from "../Theme.slint";
+import { ScrollView, Button } from "std-widgets.slint";
+import { CalendarCell } from "../components/modules/calendar_cell.slint";
+import { CustomButton } from "../components/base/custom_button.slint";
+
+export component CalendarView inherits Rectangle {
+    in property <bool> is-mobile;
+    callback cell-clicked(string);
+
+    VerticalLayout {
+        padding: Theme.padding-normal;
+        spacing: 16px;
+
+        HorizontalLayout {
+            height: 40px;
+            spacing: 10px;
+            CustomButton { text: "◀"; bg-color: Theme.card-bg; width: 40px; }
+            Rectangle {}
+            Text {
+                text: "📅 2026年7月";
+                font-family: Theme.font-family;
+                font-size: 20px;
+                font-weight: 700;
+                color: Theme.text;
+                vertical-alignment: center;
+            }
+            Rectangle {}
+            CustomButton { text: "▶"; bg-color: Theme.card-bg; width: 40px; }
+        }
+
+        HorizontalLayout {
+            spacing: 6px;
+            height: 24px;
+            
+            Text { text: "日"; color: Theme.danger; font-family: Theme.font-family; horizontal-alignment: center; horizontal-stretch: 1; }
+            Text { text: "月"; color: Theme.text; font-family: Theme.font-family; horizontal-alignment: center; horizontal-stretch: 1; }
+            Text { text: "火"; color: Theme.text; font-family: Theme.font-family; horizontal-alignment: center; horizontal-stretch: 1; }
+            Text { text: "水"; color: Theme.text; font-family: Theme.font-family; horizontal-alignment: center; horizontal-stretch: 1; }
+            Text { text: "木"; color: Theme.text; font-family: Theme.font-family; horizontal-alignment: center; horizontal-stretch: 1; }
+            Text { text: "金"; color: Theme.text; font-family: Theme.font-family; horizontal-alignment: center; horizontal-stretch: 1; }
+            Text { text: "土"; color: Theme.primary; font-family: Theme.font-family; horizontal-alignment: center; horizontal-stretch: 1; }
+        }
+
+        GridLayout {
+            spacing: 6px;
+            vertical-stretch: 1;
+
+            CalendarCell { row: 0; col: 0; day-text: "28"; is-current-month: false; clicked => { root.cell-clicked("28"); } }
+            CalendarCell { row: 0; col: 1; day-text: "29"; is-current-month: false; clicked => { root.cell-clicked("29"); } }
+            CalendarCell { row: 0; col: 2; day-text: "30"; is-current-month: false; clicked => { root.cell-clicked("30"); } }
+            CalendarCell { row: 0; col: 3; day-text: "1"; clicked => { root.cell-clicked("1"); } }
+            CalendarCell { row: 0; col: 4; day-text: "2"; clicked => { root.cell-clicked("2"); } }
+            CalendarCell { row: 0; col: 5; day-text: "3"; clicked => { root.cell-clicked("3"); } }
+            CalendarCell { row: 0; col: 6; day-text: "4"; clicked => { root.cell-clicked("4"); } }
+
+            CalendarCell { row: 1; col: 0; day-text: "5"; clicked => { root.cell-clicked("5"); } }
+            CalendarCell { row: 1; col: 1; day-text: "6"; clicked => { root.cell-clicked("6"); } }
+            CalendarCell { row: 1; col: 2; day-text: "7"; clicked => { root.cell-clicked("7"); } }
+            CalendarCell { row: 1; col: 3; day-text: "8"; clicked => { root.cell-clicked("8"); } }
+            CalendarCell { row: 1; col: 4; day-text: "9"; clicked => { root.cell-clicked("9"); } }
+            CalendarCell { row: 1; col: 5; day-text: "10"; clicked => { root.cell-clicked("10"); } }
+            CalendarCell { row: 1; col: 6; day-text: "11"; clicked => { root.cell-clicked("11"); } }
+
+            CalendarCell { row: 2; col: 0; day-text: "12"; is-today: true; clicked => { root.cell-clicked("12"); } }
+            CalendarCell { row: 2; col: 1; day-text: "13"; event-count: 2; clicked => { root.cell-clicked("13"); } }
+            CalendarCell { row: 2; col: 2; day-text: "14"; clicked => { root.cell-clicked("14"); } }
+            CalendarCell { row: 2; col: 3; day-text: "15"; clicked => { root.cell-clicked("15"); } }
+            CalendarCell { row: 2; col: 4; day-text: "16"; clicked => { root.cell-clicked("16"); } }
+            CalendarCell { row: 2; col: 5; day-text: "17"; clicked => { root.cell-clicked("17"); } }
+            CalendarCell { row: 2; col: 6; day-text: "18"; clicked => { root.cell-clicked("18"); } }
+
+            CalendarCell { row: 3; col: 0; day-text: "19"; clicked => { root.cell-clicked("19"); } }
+            CalendarCell { row: 3; col: 1; day-text: "20"; clicked => { root.cell-clicked("20"); } }
+            CalendarCell { row: 3; col: 2; day-text: "21"; clicked => { root.cell-clicked("21"); } }
+            CalendarCell { row: 3; col: 3; day-text: "22"; clicked => { root.cell-clicked("22"); } }
+            CalendarCell { row: 3; col: 4; day-text: "23"; clicked => { root.cell-clicked("23"); } }
+            CalendarCell { row: 3; col: 5; day-text: "24"; clicked => { root.cell-clicked("24"); } }
+            CalendarCell { row: 3; col: 6; day-text: "25"; clicked => { root.cell-clicked("25"); } }
+
+            CalendarCell { row: 4; col: 0; day-text: "26"; clicked => { root.cell-clicked("26"); } }
+            CalendarCell { row: 4; col: 1; day-text: "27"; clicked => { root.cell-clicked("27"); } }
+            CalendarCell { row: 4; col: 2; day-text: "28"; clicked => { root.cell-clicked("28"); } }
+            CalendarCell { row: 4; col: 3; day-text: "29"; clicked => { root.cell-clicked("29"); } }
+            CalendarCell { row: 4; col: 4; day-text: "30"; clicked => { root.cell-clicked("30"); } }
+            CalendarCell { row: 4; col: 5; day-text: "31"; clicked => { root.cell-clicked("31"); } }
+            CalendarCell { row: 4; col: 6; day-text: "1"; is-current-month: false; clicked => { root.cell-clicked("1"); } }
+        }
+    }
+}

@@ -1,0 +1,32 @@
+import { Theme } from "../../Theme.slint";
+
+export component CustomButton inherits Rectangle {
+    in-out property <string> text;
+    in-out property <color> bg-color: Theme.primary;
+    in-out property <color> hover-color: Theme.primary-hover;
+    in-out property <bool> enabled: true;
+    callback clicked();
+
+    background: ta.has-hover ? root.hover-color : root.bg-color;
+    border-radius: 6px;
+    height: 36px;
+    
+    animate background { duration: 150ms; }
+
+    ta := TouchArea {
+        clicked => { if (root.enabled) { root.clicked(); } }
+    }
+
+    HorizontalLayout {
+        padding-left: 16px;
+        padding-right: 16px;
+        alignment: center;
+        Text {
+            text: root.text;
+            color: Theme.text;
+            font-family: Theme.font-family;
+            font-weight: 600;
+            vertical-alignment: center;
+        }
+    }
+}

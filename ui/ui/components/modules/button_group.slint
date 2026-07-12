@@ -1,0 +1,32 @@
+import { CustomButton } from "../base/custom_button.slint";
+import { Theme } from "../../Theme.slint";
+
+export component ButtonGroup inherits Rectangle {
+    callback primary-clicked();
+    callback secondary-clicked();
+    in property <string> primary-text: "保存";
+    in property <string> secondary-text: "キャンセル";
+
+    height: 48px;
+    background: transparent;
+
+    HorizontalLayout {
+        spacing: 12px;
+        alignment: end;
+        
+        CustomButton {
+            text: root.secondary-text;
+            bg-color: Theme.card-bg;
+            hover-color: Theme.border-color;
+            min-width: 100px;
+            clicked => { root.secondary-clicked(); }
+        }
+        CustomButton {
+            text: root.primary-text;
+            bg-color: Theme.primary;
+            hover-color: Theme.primary-hover;
+            min-width: 100px;
+            clicked => { root.primary-clicked(); }
+        }
+    }
+}

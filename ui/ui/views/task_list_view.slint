@@ -1,0 +1,100 @@
+import { Theme } from "../Theme.slint";
+import { ScrollView } from "std-widgets.slint";
+import { TaskListItem } from "../components/modules/task_list_item.slint";
+
+export component FocusCard inherits Rectangle {
+    background: Theme.card-bg;
+    border-radius: Theme.border-radius-card;
+    border-width: 1px;
+    border-color: Theme.border-color;
+    height: 180px;
+    
+    VerticalLayout {
+        padding: Theme.padding-normal;
+        spacing: 12px;
+        Text {
+            text: "⭐ 今日の最優先タスク";
+            color: Theme.text;
+            font-family: Theme.font-family;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        TaskListItem {
+            title: "Obsidian同期スクリプトの修正";
+            time-label: "09:00 - 10:30";
+            checked: false;
+        }
+    }
+}
+
+export component DailyList inherits Rectangle {
+    in property <bool> is-mobile;
+    background: Theme.card-bg;
+    border-radius: Theme.border-radius-card;
+    border-width: 1px;
+    border-color: Theme.border-color;
+    preferred-height: root.is-mobile ? 300px : 400px; 
+
+    VerticalLayout {
+        padding: Theme.padding-normal;
+        spacing: 8px;
+        
+        Text {
+            text: "📋 日常タスク・フロー";
+            color: Theme.text;
+            font-family: Theme.font-family;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        
+        ScrollView {
+            VerticalLayout {
+                spacing: 8px;
+                TaskListItem { title: "牛乳を買う"; time-label: "19:00"; }
+                TaskListItem { title: "ゴミ出し"; time-label: "08:00"; }
+                TaskListItem { title: "Qiita記事執筆"; time-label: ""; }
+            }
+        }
+    }
+}
+
+export component TaskListView inherits Rectangle {
+    in property <bool> is-mobile;
+    
+    VerticalLayout {
+        padding: Theme.padding-normal;
+        spacing: 16px;
+        
+        Text {
+            text: "タイムライン & 実行";
+            font-size: 24px;
+            font-family: Theme.font-family;
+            font-weight: 700;
+            color: Theme.text;
+        }
+        
+        ScrollView {
+            viewport-height: root.is-mobile ? layout.preferred-height : root.height;
+            
+            layout := GridLayout {
+                spacing: 20px;
+                
+                FocusCard {
+                    row: root.is-mobile ? 0 : 0;
+                    col: root.is-mobile ? 0 : 1;
+                    colspan: root.is-mobile ? 2 : 1;
+                    horizontal-stretch: root.is-mobile ? 1 : 55;
+                }
+                
+                DailyList {
+                    is-mobile: root.is-mobile;
+                    row: root.is-mobile ? 1 : 0;
+                    col: 0;
+                    colspan: root.is-mobile ? 2 : 1;
+                    horizontal-stretch: root.is-mobile ? 1 : 45;
+                }
+            }
+        }
+    }
+}

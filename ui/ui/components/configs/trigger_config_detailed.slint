@@ -1,0 +1,88 @@
+import { Theme } from "../../Theme.slint";
+import { CustomCheckbox } from "../base/custom_checkbox.slint";
+import { CustomButton } from "../base/custom_button.slint";
+
+export component TriggerConfigDetailed inherits Rectangle {
+    in-out property <string> time-value;
+    in-out property <string> location-value;
+    in-out property <bool> is-and-condition: false;
+    callback time-changed(string);
+    callback location-changed(string);
+    callback and-condition-toggled(bool);
+
+    background: Theme.card-bg;
+    border-radius: Theme.border-radius-card;
+    border-width: 1px;
+    border-color: Theme.border-color;
+    
+    VerticalLayout {
+        padding: Theme.padding-normal;
+        spacing: 16px;
+        
+        Text { 
+            text: "🔔 リマインダー詳細設定 (PC用)"; 
+            color: Theme.text; 
+            font-family: Theme.font-family; 
+            font-weight: 700; 
+            font-size: 16px;
+        }
+
+        HorizontalLayout {
+            spacing: 20px;
+            
+            // Time setting
+            VerticalLayout {
+                spacing: 8px;
+                horizontal-stretch: 1;
+                Text { text: "通知時間"; color: Theme.text-sub; font-size: 12px; }
+                Rectangle {
+                    height: 36px;
+                    border-width: 1px;
+                    border-color: Theme.border-color;
+                    background: Theme.background;
+                    border-radius: 4px;
+                    HorizontalLayout {
+                        padding-left: 8px;
+                        padding-right: 8px;
+                        TextInput {
+                            text: root.time-value;
+                            color: Theme.text;
+                            edited => { root.time-value = self.text; root.time-changed(self.text); }
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+            }
+
+            // Location setting
+            VerticalLayout {
+                spacing: 8px;
+                horizontal-stretch: 1;
+                Text { text: "通知場所"; color: Theme.text-sub; font-size: 12px; }
+                Rectangle {
+                    height: 36px;
+                    border-width: 1px;
+                    border-color: Theme.border-color;
+                    background: Theme.background;
+                    border-radius: 4px;
+                    HorizontalLayout {
+                        padding-left: 8px;
+                        padding-right: 8px;
+                        TextInput {
+                            text: root.location-value;
+                            color: Theme.text;
+                            edited => { root.location-value = self.text; root.location-changed(self.text); }
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+            }
+        }
+
+        CustomCheckbox {
+            label: "時間 AND 場所 どちらも満たした時に通知する (複合Andトリガー)";
+            checked: root.is-and-condition;
+            toggled(val) => { root.is-and-condition = val; root.and-condition-toggled(val); }
+        }
+    }
+}

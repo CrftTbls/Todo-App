@@ -1,0 +1,113 @@
+import { Theme } from "../../Theme.slint";
+import { CustomButton } from "../base/custom_button.slint";
+
+export component TimePickerModal inherits Rectangle {
+    in-out property <string> hour-value: "08";
+    in-out property <string> minute-value: "30";
+    callback confirm-clicked(string, string);
+    callback cancel-clicked();
+
+    background: #00000080;
+
+    TouchArea {
+        clicked => { root.cancel-clicked(); }
+    }
+
+    Rectangle {
+        width: 300px;
+        height: 200px;
+        background: Theme.card-bg;
+        border-radius: Theme.border-radius-card;
+        border-width: 1px;
+        border-color: Theme.border-color;
+        
+        VerticalLayout {
+            padding: Theme.padding-normal;
+            spacing: 16px;
+
+            Text {
+                text: "⏰ 時間選択";
+                color: Theme.text;
+                font-family: Theme.font-family;
+                font-size: 16px;
+                font-weight: 700;
+                horizontal-alignment: center;
+            }
+
+            HorizontalLayout {
+                spacing: 12px;
+                alignment: center;
+                
+                Rectangle {
+                    width: 60px;
+                    height: 40px;
+                    background: Theme.background;
+                    border-radius: 4px;
+                    border-width: 1px;
+                    border-color: Theme.border-color;
+                    HorizontalLayout {
+                        padding-left: 6px;
+                        padding-right: 6px;
+                        TextInput {
+                            text: root.hour-value;
+                            color: Theme.text;
+                            font-size: 18px;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                            edited => { root.hour-value = self.text; }
+                        }
+                    }
+                }
+
+                Text {
+                    text: ":";
+                    color: Theme.text;
+                    font-size: 18px;
+                    font-weight: 700;
+                    vertical-alignment: center;
+                }
+
+                Rectangle {
+                    width: 60px;
+                    height: 40px;
+                    background: Theme.background;
+                    border-radius: 4px;
+                    border-width: 1px;
+                    border-color: Theme.border-color;
+                    HorizontalLayout {
+                        padding-left: 6px;
+                        padding-right: 6px;
+                        TextInput {
+                            text: root.minute-value;
+                            color: Theme.text;
+                            font-size: 18px;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                            edited => { root.minute-value = self.text; }
+                        }
+                    }
+                }
+            }
+
+            HorizontalLayout {
+                spacing: 12px;
+                
+                CustomButton {
+                    text: "キャンセル";
+                    bg-color: Theme.background;
+                    hover-color: Theme.border-color;
+                    clicked => { root.cancel-clicked(); }
+                    horizontal-stretch: 1;
+                }
+
+                CustomButton {
+                    text: "決定";
+                    bg-color: Theme.primary;
+                    hover-color: Theme.primary-hover;
+                    clicked => { root.confirm-clicked(root.hour-value, root.minute-value); }
+                    horizontal-stretch: 1;
+                }
+            }
+        }
+    }
+}
