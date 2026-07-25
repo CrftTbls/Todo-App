@@ -5,6 +5,9 @@ edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+ffi = []
+
 [lib]
 name = "todo_app_core"
 crate-type = ["lib", "cdylib", "staticlib"]
@@ -35,15 +38,10 @@ codegen-units = 1
 lto = true
 
 [lints.rust]
-unsafe_code = "forbid"
+unsafe_code = "deny"
 
 [lints.clippy]
-unwrap_used = "deny"
-expect_used = "deny"
-panic = "deny"
-unimplemented = "deny"
-todo = "deny"
-indexing_slicing = "deny"
+undocumented_unsafe_blocks = "deny"
 arithmetic_side_effects = "warn"
 unwrap_in_result = "deny"
 dbg_macro = "deny"

@@ -13,7 +13,7 @@ pub enum UiCommand {
     RebuildDatabase,
     GetTasks,
     CreateTask { title: String, parent_id: Option<String>, chain_id: Option<String>, chain_order: Option<i64> },
-    UpdateTask(crate::features::task::models::Task),
+    UpdateTask(Box<crate::features::task::models::Task>),
     UpdateTaskStatus { id: String, status: String },
     DeleteTask { id: String },
 }
@@ -29,7 +29,7 @@ pub enum BackgroundEvent {
 /// メインロジックが処理する共通メッセージ表現
 #[derive(Debug)]
 pub enum BackendMessage {
-    Ui(UiCommand),
+    Ui(Box<UiCommand>),
     Background(BackgroundEvent),
 }
 

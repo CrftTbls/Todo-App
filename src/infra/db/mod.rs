@@ -37,11 +37,9 @@ impl DbManager {
         let path = db_path.as_ref();
         
         // 親ディレクトリの自動作成（OSごとのディレクトリ存在エラーを防止）
-        if let Some(parent) = path.parent() {
-            if !parent.exists() && parent.as_os_str() != "" {
-                std::fs::create_dir_all(parent)
-                    .map_err(|e| AppError::PathError(format!("Failed to create DB directory: {}", e)))?;
-            }
+        if let Some(parent) = path.parent().filter(|p| !p.exists() && !p.as_os_str().is_empty()) {
+            std::fs::create_dir_all(parent)
+                .map_err(|e| AppError::PathError(format!("Failed to create DB directory: {}", e)))?;
         }
 
         let manager = SqliteConnectionManager::file(path);

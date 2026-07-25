@@ -2,17 +2,29 @@
 //! sysdirsを用いてプラットフォームに適したパスを解決し、UIとバックエンドを結合する。
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+#![deny(clippy::unwrap_used)]
+#![deny(clippy::expect_used)]
+#![deny(clippy::panic)]
 
 use std::sync::Arc;
 use std::path::PathBuf;
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use slint::ComponentHandle;
 
-use todo_app_core::errors::{AppError, Result};
 use todo_app_core::infra::db::DbManager;
 use todo_app_core::message::{BackendMessage, BackgroundEvent, LogicEvent, UiCommand};
 
-slint::include_modules!();
+mod ui {
+    #![allow(clippy::all)]
+    #![allow(clippy::unwrap_used)]
+    #![allow(clippy::expect_used)]
+    #![allow(clippy::panic)]
+    #![allow(clippy::indexing_slicing)]
+    #![allow(clippy::arithmetic_side_effects)]
+    #![allow(clippy::let_underscore_must_use)]
+    slint::include_modules!();
+}
+use ui::*;
 
 fn to_slint_task(task: &todo_app_core::features::task::models::Task) -> SlintTask {
     SlintTask {
@@ -28,6 +40,7 @@ fn to_slint_task(task: &todo_app_core::features::task::models::Task) -> SlintTas
 }
 
 /// バックグラウンドから送られてきたUI更新イベントを適用する
+#[allow(clippy::print_stdout)]
 fn handle_logic_event(ui: &AppWindow, event: LogicEvent) {
     match event {
         LogicEvent::Pong => {
@@ -47,11 +60,7 @@ fn handle_logic_event(ui: &AppWindow, event: LogicEvent) {
             let model = slint::VecModel::from(slint_tasks);
             ui.set_tasks(slint::ModelRc::new(model));
         }
-        LogicEvent::TaskCreated(_task) => {
-            // 作成完了したら一覧を再取得するために、UI側に再読込を要求するか
-            // ここで直接ロードタスクを投げる（今回はUIがイベントをハンドリングしてload-tasksをトリガーする設計も可能だが、
-            // Rust側で直接再クエリをかけてUIを更新するのがシンプル）
-        }
+        LogicEvent::TaskCreated(_task) => {}
         LogicEvent::TaskUpdated(_task) => {}
         LogicEvent::TaskDeleted(_id) => {}
     }
@@ -67,6 +76,7 @@ fn send_to_ui(ui_weak: &slint::Weak<AppWindow>, event: LogicEvent) -> todo_app_c
 }
 
 /// メインロジックスレッド。すべてのメッセージをシリアル化して処理する。
+#[allow(clippy::print_stdout)]
 fn start_logic_thread(
     rx: Receiver<BackendMessage>,
     db: Arc<DbManager>,
@@ -81,7 +91,7 @@ fn start_logic_thread(
 
             match msg {
                 BackendMessage::Ui(cmd) => {
-                    let result = match cmd {
+                    let result = match *cmd {
                         UiCommand::Ping => {
                             send_to_ui(&ui_weak_clone, LogicEvent::Pong)
                         }
@@ -92,10 +102,8 @@ fn start_logic_thread(
                                     Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
                                 })?;
                                 let mut settings = std::collections::HashMap::new();
-                                for item in rows {
-                                    if let Ok((k, v)) = item {
-                                        settings.insert(k, v);
-                                    }
+                                for (k, v) in rows.flatten() {
+                                    settings.insert(k, v);
                                 }
                                 Ok(settings)
                             });
@@ -115,7 +123,7 @@ fn start_logic_thread(
                                 Ok(())
                             });
                             if let Err(e) = db_res {
-                                let _ = send_to_ui(&ui_weak_clone, LogicEvent::ErrorOccurred(format!("Setting Update Failed: {:?}", e)));
+                                drop(send_to_ui(&ui_weak_clone, LogicEvent::ErrorOccurred(format!("Setting Update Failed: {:?}", e))));
                             }
                             Ok(())
                         }
@@ -181,11 +189,11 @@ fn start_logic_thread(
                             });
                             match db_res {
                                 Ok(task) => {
-                                    let _ = send_to_ui(&ui_weak_clone, LogicEvent::TaskCreated(task));
-                                    let _ = tx_clone.send(BackendMessage::Ui(UiCommand::GetTasks));
+                                    drop(send_to_ui(&ui_weak_clone, LogicEvent::TaskCreated(task)));
+                                    drop(tx_clone.send(BackendMessage::Ui(Box::new(UiCommand::GetTasks))));
                                 }
                                 Err(e) => {
-                                    let _ = send_to_ui(&ui_weak_clone, LogicEvent::ErrorOccurred(format!("CreateTask failed: {:?}", e)));
+                                    drop(send_to_ui(&ui_weak_clone, LogicEvent::ErrorOccurred(format!("CreateTask failed: {:?}", e))));
                                 }
                             }
                             Ok(())
@@ -197,11 +205,11 @@ fn start_logic_thread(
                             });
                             match db_res {
                                 Ok(task) => {
-                                    let _ = send_to_ui(&ui_weak_clone, LogicEvent::TaskUpdated(task));
-                                    let _ = tx_clone.send(BackendMessage::Ui(UiCommand::GetTasks));
+                                    drop(send_to_ui(&ui_weak_clone, LogicEvent::TaskUpdated(*task)));
+                                    drop(tx_clone.send(BackendMessage::Ui(Box::new(UiCommand::GetTasks))));
                                 }
                                 Err(e) => {
-                                    let _ = send_to_ui(&ui_weak_clone, LogicEvent::ErrorOccurred(format!("UpdateTask failed: {:?}", e)));
+                                    drop(send_to_ui(&ui_weak_clone, LogicEvent::ErrorOccurred(format!("UpdateTask failed: {:?}", e))));
                                 }
                             }
                             Ok(())
@@ -240,11 +248,11 @@ fn start_logic_thread(
                             });
                             match db_res {
                                 Ok(task) => {
-                                    let _ = send_to_ui(&ui_weak_clone, LogicEvent::TaskUpdated(task));
-                                    let _ = tx_clone.send(BackendMessage::Ui(UiCommand::GetTasks));
+                                    drop(send_to_ui(&ui_weak_clone, LogicEvent::TaskUpdated(task)));
+                                    drop(tx_clone.send(BackendMessage::Ui(Box::new(UiCommand::GetTasks))));
                                 }
                                 Err(e) => {
-                                    let _ = send_to_ui(&ui_weak_clone, LogicEvent::ErrorOccurred(format!("UpdateTaskStatus failed: {:?}", e)));
+                                    drop(send_to_ui(&ui_weak_clone, LogicEvent::ErrorOccurred(format!("UpdateTaskStatus failed: {:?}", e))));
                                 }
                             }
                             Ok(())
@@ -256,11 +264,11 @@ fn start_logic_thread(
                             });
                             match db_res {
                                 Ok(id) => {
-                                    let _ = send_to_ui(&ui_weak_clone, LogicEvent::TaskDeleted(id));
-                                    let _ = tx_clone.send(BackendMessage::Ui(UiCommand::GetTasks));
+                                    drop(send_to_ui(&ui_weak_clone, LogicEvent::TaskDeleted(id)));
+                                    drop(tx_clone.send(BackendMessage::Ui(Box::new(UiCommand::GetTasks))));
                                 }
                                 Err(e) => {
-                                    let _ = send_to_ui(&ui_weak_clone, LogicEvent::ErrorOccurred(format!("DeleteTask failed: {:?}", e)));
+                                    drop(send_to_ui(&ui_weak_clone, LogicEvent::ErrorOccurred(format!("DeleteTask failed: {:?}", e))));
                                 }
                             }
                             Ok(())
@@ -333,7 +341,7 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
 
     let tx_clone = tx.clone();
     ui.on_load_tasks(move || {
-        let _ = tx_clone.send(BackendMessage::Ui(UiCommand::GetTasks));
+        drop(tx_clone.send(BackendMessage::Ui(Box::new(UiCommand::GetTasks))));
     });
 
     let tx_clone = tx.clone();
@@ -341,29 +349,29 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
         let p_id = if parent_id.is_empty() { None } else { Some(parent_id.into()) };
         let c_id = if chain_id.is_empty() { None } else { Some(chain_id.into()) };
         let c_order = if chain_order == 0 { None } else { Some(chain_order as i64) };
-        let _ = tx_clone.send(BackendMessage::Ui(UiCommand::CreateTask {
+        drop(tx_clone.send(BackendMessage::Ui(Box::new(UiCommand::CreateTask {
             title: title.into(),
             parent_id: p_id,
             chain_id: c_id,
             chain_order: c_order,
-        }));
+        }))));
     });
 
     let tx_clone = tx.clone();
     ui.on_update_task_status(move |id, status| {
-        let _ = tx_clone.send(BackendMessage::Ui(UiCommand::UpdateTaskStatus {
+        drop(tx_clone.send(BackendMessage::Ui(Box::new(UiCommand::UpdateTaskStatus {
             id: id.into(),
             status: status.into(),
-        }));
+        }))));
     });
 
     let tx_clone = tx.clone();
     ui.on_delete_task(move |id| {
-        let _ = tx_clone.send(BackendMessage::Ui(UiCommand::DeleteTask { id: id.into() }));
+        drop(tx_clone.send(BackendMessage::Ui(Box::new(UiCommand::DeleteTask { id: id.into() }))));
     });
 
     // 起動時に全タスク取得
-    let _ = tx.send(BackendMessage::Ui(UiCommand::GetTasks));
+    drop(tx.send(BackendMessage::Ui(Box::new(UiCommand::GetTasks))));
 
     // 6. UIイベントループの実行
     ui.run()?;

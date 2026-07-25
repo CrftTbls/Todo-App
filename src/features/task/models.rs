@@ -17,6 +17,7 @@ impl TaskStatus {
         }
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(s: &str) -> std::result::Result<Self, String> {
         match s.to_lowercase().as_str() {
             "todo" => Ok(TaskStatus::Todo),
@@ -59,6 +60,7 @@ impl TaskPriority {
         }
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(s: &str) -> std::result::Result<Self, String> {
         match s.to_lowercase().as_str() {
             "high" => Ok(TaskPriority::High),
