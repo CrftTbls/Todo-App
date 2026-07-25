@@ -34,3 +34,24 @@ slint-build = "1.16.1"
 codegen-units = 1
 lto = true
 
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+unimplemented = "deny"
+todo = "deny"
+indexing_slicing = "deny"
+arithmetic_side_effects = "warn"
+unwrap_in_result = "deny"
+dbg_macro = "deny"
+print_stdout = "warn"
+let_underscore_must_use = "deny"
+let_underscore_lock = "deny"
+map_err_ignore = "deny"
+perf = {level = "deny", priority = -1}
+unreachable = "warn"
+mem_forget = "deny"
+exit = "deny"
