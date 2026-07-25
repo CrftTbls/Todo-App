@@ -1,0 +1,80 @@
+import { Theme } from "../../Theme.slint";
+import { ConflictChoiceCard } from "../modules/conflict_choice_card.slint";
+import { CustomButton } from "../base/custom_button.slint";
+
+export component ConflictResolutionModal inherits Rectangle {
+    callback cancel-clicked();
+    callback local-selected();
+    callback remote-selected();
+
+    background: #00000080;
+
+    TouchArea {
+        clicked => { root.cancel-clicked(); }
+    }
+
+    Rectangle {
+        width: 580px;
+        height: 320px;
+        background: Theme.card-bg;
+        border-radius: Theme.border-radius-card;
+        border-width: 1px;
+        border-color: Theme.border-color;
+
+        VerticalLayout {
+            padding: Theme.padding-normal;
+            spacing: 16px;
+
+            Text {
+                text: "⚠️ データ競合の解決";
+                color: Theme.text;
+                font-family: Theme.font-family;
+                font-size: 18px;
+                font-weight: 700;
+                horizontal-alignment: center;
+            }
+
+            Text {
+                text: "他のデバイスで変更されたデータと競合しています。どちらのデータを保存するか選択してください。";
+                color: Theme.text-sub;
+                font-family: Theme.font-family;
+                font-size: 13px;
+                wrap: word-wrap;
+                horizontal-alignment: center;
+            }
+
+            HorizontalLayout {
+                spacing: 16px;
+                
+                ConflictChoiceCard {
+                    title: "この端末のデータ";
+                    device-name: "Local Desktop";
+                    updated-time: "2026-07-12 15:30:12";
+                    content-preview: "TODOアプリのレスポンシブUI実装を進める。";
+                    select-clicked => { root.local-selected(); }
+                    horizontal-stretch: 1;
+                }
+
+                ConflictChoiceCard {
+                    title: "サーバー/同期先のデータ";
+                    device-name: "Remote Android";
+                    updated-time: "2026-07-12 15:30:45";
+                    content-preview: "TODOアプリのUIモック実装とビルド検証を行う。";
+                    select-clicked => { root.remote-selected(); }
+                    horizontal-stretch: 1;
+                }
+            }
+
+            HorizontalLayout {
+                alignment: center;
+                CustomButton {
+                    text: "後で解決する";
+                    bg-color: Theme.background;
+                    hover-color: Theme.border-color;
+                    clicked => { root.cancel-clicked(); }
+                    width: 200px;
+                }
+            }
+        }
+    }
+}

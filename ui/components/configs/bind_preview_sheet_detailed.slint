@@ -1,0 +1,48 @@
+import { Theme } from "../../Theme.slint";
+import { BindPreviewItem } from "../modules/bind_preview_item.slint";
+import { ScrollView } from "std-widgets.slint";
+
+export component BindPreviewSheetDetailed inherits Rectangle {
+    background: Theme.card-bg;
+    border-radius: Theme.border-radius-card;
+    border-width: 1px;
+    border-color: Theme.border-color;
+
+    VerticalLayout {
+        padding: Theme.padding-normal;
+        spacing: 16px;
+
+        Text {
+            text: "🪄 AI解析プレビュー (PC用)";
+            color: Theme.text;
+            font-family: Theme.font-family;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        ScrollView {
+            viewport-height: 400px;
+            VerticalLayout {
+                spacing: 12px;
+                
+                BindPreviewItem {
+                    title: "牛乳を買う";
+                    time-chip-text: "⏰ 今日の夜 (19:00)";
+                    location-chip-text: "📍 スーパー";
+                }
+
+                BindPreviewItem {
+                    title: "ゴミ出し";
+                    time-chip-text: "⏰ 明日の朝 (08:00)";
+                    location-chip-text: "📍 自宅";
+                }
+
+                BindPreviewItem {
+                    title: "週次ミーティング準備";
+                    time-chip-text: "⏰ 来週月曜";
+                    location-chip-text: "";
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,77 @@
+import { Theme } from "../../Theme.slint";
+import { CustomCheckbox } from "../base/custom_checkbox.slint";
+import { CustomButton } from "../base/custom_button.slint";
+
+export component TriggerConfigMedium inherits Rectangle {
+    in-out property <string> time-value;
+    in property <string> location-summary: "未設定";
+    in-out property <bool> is-and-condition: false;
+    callback time-changed(string);
+    callback open-location-dialog();
+    callback and-condition-toggled(bool);
+
+    background: Theme.card-bg;
+    border-radius: Theme.border-radius-card;
+    border-width: 1px;
+    border-color: Theme.border-color;
+
+    VerticalLayout {
+        padding: Theme.padding-normal;
+        spacing: 12px;
+
+        Text { 
+            text: "🔔 リマインダー設定 (タブレット用)"; 
+            color: Theme.text; 
+            font-family: Theme.font-family; 
+            font-weight: 700; 
+            font-size: 14px;
+        }
+
+        HorizontalLayout {
+            spacing: 12px;
+
+            // Time input (inline)
+            VerticalLayout {
+                spacing: 6px;
+                horizontal-stretch: 1;
+                Text { text: "通知時間"; color: Theme.text-sub; font-size: 12px; }
+                Rectangle {
+                    height: 36px;
+                    border-width: 1px;
+                    border-color: Theme.border-color;
+                    background: Theme.background;
+                    border-radius: 4px;
+                    HorizontalLayout {
+                        padding-left: 8px;
+                        padding-right: 8px;
+                        TextInput {
+                            text: root.time-value;
+                            color: Theme.text;
+                            edited => { root.time-value = self.text; root.time-changed(self.text); }
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+            }
+
+            // Location selection (button)
+            VerticalLayout {
+                spacing: 6px;
+                horizontal-stretch: 1;
+                Text { text: "通知場所 (タップして変更)"; color: Theme.text-sub; font-size: 12px; }
+                CustomButton {
+                    text: root.location-summary == "" ? "場所を設定..." : "📍 " + root.location-summary;
+                    bg-color: Theme.background;
+                    hover-color: Theme.border-color;
+                    clicked => { root.open-location-dialog(); }
+                }
+            }
+        }
+
+        CustomCheckbox {
+            label: "時間 AND 場所 複合条件";
+            checked: root.is-and-condition;
+            toggled(val) => { root.is-and-condition = val; root.and-condition-toggled(val); }
+        }
+    }
+}

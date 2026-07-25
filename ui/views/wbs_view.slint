@@ -1,0 +1,126 @@
+import { Theme } from "../Theme.slint";
+import { ScrollView, Button } from "std-widgets.slint";
+import { CustomButton } from "../components/base/custom_button.slint";
+
+export component WbsView inherits Rectangle {
+    in property <bool> is-mobile;
+    callback back-clicked();
+
+    VerticalLayout {
+        padding: Theme.padding-normal;
+        spacing: 16px;
+
+        HorizontalLayout {
+            height: 40px;
+            spacing: 10px;
+            Button {
+                text: "✕ 戻る";
+                clicked => { root.back-clicked(); }
+            }
+            Rectangle {}
+            Text {
+                text: "🔗 WBS・チェーン設定";
+                font-family: Theme.font-family;
+                font-size: 20px;
+                font-weight: 700;
+                color: Theme.text;
+                vertical-alignment: center;
+            }
+            Rectangle {}
+        }
+
+        Text {
+            text: "順序実行するタスクのステップを調整します。最も上のステップが完了すると自動的に次のステップがアクティブになります。";
+            color: Theme.text-sub;
+            font-family: Theme.font-family;
+            font-size: 13px;
+            wrap: word-wrap;
+        }
+
+        ScrollView {
+            VerticalLayout {
+                spacing: 12px;
+
+                Rectangle {
+                    height: 60px;
+                    background: Theme.card-bg;
+                    border-radius: Theme.border-radius-card;
+                    border-width: 1px;
+                    border-color: Theme.primary;
+
+                    HorizontalLayout {
+                        padding: 12px;
+                        spacing: 12px;
+                        alignment: space-between;
+
+                        Text {
+                            text: "1. 開発環境のセットアップ";
+                            color: Theme.text;
+                            font-family: Theme.font-family;
+                            font-weight: 600;
+                            vertical-alignment: center;
+                        }
+
+                        HorizontalLayout {
+                            spacing: 8px;
+                            CustomButton { text: "▼"; bg-color: Theme.background; width: 32px; height: 32px; }
+                        }
+                    }
+                }
+
+                Rectangle {
+                    height: 60px;
+                    background: Theme.card-bg;
+                    border-radius: Theme.border-radius-card;
+                    border-width: 1px;
+                    border-color: Theme.border-color;
+
+                    HorizontalLayout {
+                        padding: 12px;
+                        spacing: 12px;
+                        alignment: space-between;
+
+                        Text {
+                            text: "2. データベース設計とテーブル作成";
+                            color: Theme.text;
+                            font-family: Theme.font-family;
+                            vertical-alignment: center;
+                        }
+
+                        HorizontalLayout {
+                            spacing: 8px;
+                            CustomButton { text: "▲"; bg-color: Theme.background; width: 32px; height: 32px; }
+                            CustomButton { text: "▼"; bg-color: Theme.background; width: 32px; height: 32px; }
+                        }
+                    }
+                }
+
+                Rectangle {
+                    height: 60px;
+                    background: Theme.card-bg;
+                    border-radius: Theme.border-radius-card;
+                    border-width: 1px;
+                    border-color: Theme.border-color;
+
+                    HorizontalLayout {
+                        padding: 12px;
+                        spacing: 12px;
+                        alignment: space-between;
+
+                        Text {
+                            text: "3. UIコンポーネントの実装と統合";
+                            color: Theme.text;
+                            font-family: Theme.font-family;
+                            vertical-alignment: center;
+                        }
+
+                        HorizontalLayout {
+                            spacing: 8px;
+                            CustomButton { text: "▲"; bg-color: Theme.background; width: 32px; height: 32px; }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,30 @@
+import { Theme } from "../../Theme.slint";
+
+export component Chip inherits Rectangle {
+    in-out property <string> text;
+    in-out property <bool> selected: false;
+    callback clicked();
+
+    background: root.selected ? Theme.primary : Theme.card-bg;
+    border-width: 1px;
+    border-color: root.selected ? Theme.primary : Theme.border-color;
+    border-radius: 14px;
+    height: 28px;
+
+    ta := TouchArea {
+        clicked => { root.clicked(); }
+    }
+
+    HorizontalLayout {
+        padding-left: 12px;
+        padding-right: 12px;
+        alignment: center;
+        Text {
+            text: root.text;
+            color: root.selected ? Theme.text : Theme.text-sub;
+            font-family: Theme.font-family;
+            font-size: 12px;
+            vertical-alignment: center;
+        }
+    }
+}

@@ -1,0 +1,62 @@
+import { Theme } from "../../Theme.slint";
+import { Chip } from "../base/chip.slint";
+import { CustomButton } from "../base/custom_button.slint";
+
+export component RecurrenceConfigMedium inherits Rectangle {
+    in property <string> summary-text: "なし";
+    callback weekday-clicked(string);
+    callback open-exclusions-dialog();
+
+    background: Theme.card-bg;
+    border-radius: Theme.border-radius-card;
+    border-width: 1px;
+    border-color: Theme.border-color;
+
+    VerticalLayout {
+        padding: Theme.padding-normal;
+        spacing: 12px;
+
+        Text {
+            text: "🔄 繰り返し設定 (タブレット用)";
+            color: Theme.text;
+            font-family: Theme.font-family;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        VerticalLayout {
+            spacing: 6px;
+            Text { text: "曜日選択"; color: Theme.text-sub; font-size: 12px; }
+            HorizontalLayout {
+                spacing: 6px;
+                Chip { text: "月"; clicked => { root.weekday-clicked("mon"); } }
+                Chip { text: "火"; clicked => { root.weekday-clicked("tue"); } }
+                Chip { text: "水"; clicked => { root.weekday-clicked("wed"); } }
+                Chip { text: "木"; clicked => { root.weekday-clicked("thu"); } }
+                Chip { text: "金"; clicked => { root.weekday-clicked("fri"); } }
+                Chip { text: "土"; clicked => { root.weekday-clicked("sat"); } }
+                Chip { text: "日"; clicked => { root.weekday-clicked("sun"); } }
+            }
+        }
+
+        HorizontalLayout {
+            spacing: 12px;
+            
+            Text {
+                text: "概要: " + root.summary-text;
+                color: Theme.text;
+                font-family: Theme.font-family;
+                font-size: 13px;
+                vertical-alignment: center;
+                horizontal-stretch: 1;
+            }
+
+            CustomButton {
+                text: "祝日・除外設定 ➔";
+                bg-color: Theme.background;
+                hover-color: Theme.border-color;
+                clicked => { root.open-exclusions-dialog(); }
+            }
+        }
+    }
+}

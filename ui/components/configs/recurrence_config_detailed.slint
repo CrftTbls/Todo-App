@@ -1,0 +1,93 @@
+import { Theme } from "../../Theme.slint";
+import { CustomToggle } from "../base/custom_toggle.slint";
+import { Chip } from "../base/chip.slint";
+import { CustomButton } from "../base/custom_button.slint";
+
+export component RecurrenceConfigDetailed inherits Rectangle {
+    in-out property <bool> is-routine: false;
+    in-out property <bool> skip-holidays: false;
+    in-out property <string> rule-value: "";
+    callback add-exclusion-clicked();
+    callback weekday-clicked(string);
+
+    background: Theme.card-bg;
+    border-radius: Theme.border-radius-card;
+    border-width: 1px;
+    border-color: Theme.border-color;
+
+    VerticalLayout {
+        padding: Theme.padding-normal;
+        spacing: 16px;
+
+        Text {
+            text: "🔄 繰り返し＆スケジュール詳細設定 (PC用)";
+            color: Theme.text;
+            font-family: Theme.font-family;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        HorizontalLayout {
+            spacing: 20px;
+            
+            VerticalLayout {
+                spacing: 8px;
+                horizontal-stretch: 1;
+                CustomToggle {
+                    label: "繰り返しルーティンを有効にする";
+                    checked: root.is-routine;
+                    toggled(val) => { root.is-routine = val; }
+                }
+            }
+
+            VerticalLayout {
+                spacing: 8px;
+                horizontal-stretch: 1;
+                CustomToggle {
+                    label: "日本の祝日はスキップする";
+                    checked: root.skip-holidays;
+                    toggled(val) => { root.skip-holidays = val; }
+                }
+            }
+        }
+
+        if (root.is-routine) : VerticalLayout {
+            spacing: 8px;
+            Text {
+                text: "繰り返す曜日:";
+                color: Theme.text-sub;
+                font-family: Theme.font-family;
+                font-size: 12px;
+            }
+            HorizontalLayout {
+                spacing: 6px;
+                Chip { text: "月"; clicked => { root.weekday-clicked("mon"); } }
+                Chip { text: "火"; clicked => { root.weekday-clicked("tue"); } }
+                Chip { text: "水"; clicked => { root.weekday-clicked("wed"); } }
+                Chip { text: "木"; clicked => { root.weekday-clicked("thu"); } }
+                Chip { text: "金"; clicked => { root.weekday-clicked("fri"); } }
+                Chip { text: "土"; clicked => { root.weekday-clicked("sat"); } }
+                Chip { text: "日"; clicked => { root.weekday-clicked("sun"); } }
+            }
+        }
+
+        HorizontalLayout {
+            spacing: 10px;
+            
+            Text {
+                text: "例外設定: " + root.rule-value;
+                color: Theme.text;
+                font-family: Theme.font-family;
+                font-size: 14px;
+                vertical-alignment: center;
+            }
+            Rectangle {}
+            CustomButton {
+                text: "除外日を追加...";
+                bg-color: Theme.background;
+                hover-color: Theme.border-color;
+                clicked => { root.add-exclusion-clicked(); }
+            }
+        }
+    }
+}

@@ -1,0 +1,109 @@
+import { Theme } from "../Theme.slint";
+import { CustomButton } from "../components/base/custom_button.slint";
+
+export component TutorialView inherits Rectangle {
+    in-out property <int> current-slide: 1;
+    callback finish-clicked();
+
+    background: Theme.background;
+
+    VerticalLayout {
+        padding: Theme.padding-normal;
+        spacing: 24px;
+        alignment: center;
+
+        Text {
+            text: "ステップ " + root.current-slide + " / 5";
+            color: Theme.primary;
+            font-family: Theme.font-family;
+            font-size: 14px;
+            font-weight: 700;
+            horizontal-alignment: center;
+        }
+
+        Rectangle {
+            width: 320px;
+            height: 240px;
+            background: Theme.card-bg;
+            border-radius: Theme.border-radius-card;
+            border-width: 1px;
+            border-color: Theme.border-color;
+
+            VerticalLayout {
+                padding: Theme.padding-normal;
+                spacing: 16px;
+                alignment: center;
+
+                Text {
+                    text: root.current-slide == 1 ? "Plan & Do へおいでやす"
+                        : root.current-slide == 2 ? "親子タスクの階層管理"
+                        : root.current-slide == 3 ? "チェーンタスク順序実行"
+                        : root.current-slide == 4 ? "Markdownと双方向同期"
+                        : "ローカルAIによるメモ整理";
+                    color: Theme.text;
+                    font-family: Theme.font-family;
+                    font-size: 18px;
+                    font-weight: 700;
+                    horizontal-alignment: center;
+                }
+
+                Rectangle {
+                    height: 80px;
+                    background: Theme.background;
+                    border-radius: 6px;
+                    Text {
+                        text: root.current-slide == 1 ? "📋✨"
+                            : root.current-slide == 2 ? "🌿"
+                            : root.current-slide == 3 ? "🔗"
+                            : root.current-slide == 4 ? "📝🔄"
+                            : "🧠🪄";
+                        font-size: 32px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+
+                Text {
+                    text: root.current-slide == 1 ? "直感的なタスクフロー管理で、作業を効率化しましょう。"
+                        : root.current-slide == 2 ? "複雑なタスクはサブタスクに分割して階層化できます。"
+                        : root.current-slide == 3 ? "順序が設定されたタスクは自動的に次がアクティブに。"
+                        : root.current-slide == 4 ? "ObsidianなどのMarkdownファイルを直接同期できます。"
+                        : "自由に入力したメモから、AIが日付と場所を自動抽出。";
+                    color: Theme.text-sub;
+                    font-family: Theme.font-family;
+                    font-size: 13px;
+                    wrap: word-wrap;
+                    horizontal-alignment: center;
+                }
+            }
+        }
+
+        HorizontalLayout {
+            spacing: 16px;
+            alignment: center;
+            
+            if (root.current-slide > 1) : CustomButton {
+                text: "戻る";
+                bg-color: Theme.card-bg;
+                hover-color: Theme.border-color;
+                clicked => { root.current-slide = root.current-slide - 1; }
+                width: 100px;
+            }
+
+            if (root.current-slide < 5) : CustomButton {
+                text: "次へ";
+                bg-color: Theme.primary;
+                hover-color: Theme.primary-hover;
+                clicked => { root.current-slide = root.current-slide + 1; }
+                width: 100px;
+            }
+
+            if (root.current-slide == 5) : CustomButton {
+                text: "はじめる！";
+                bg-color: Theme.success;
+                clicked => { root.finish-clicked(); }
+                width: 120px;
+            }
+        }
+    }
+}

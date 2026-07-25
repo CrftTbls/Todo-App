@@ -1,0 +1,40 @@
+import { Theme } from "../../Theme.slint";
+import { TextEdit } from "std-widgets.slint";
+
+export component CustomInput inherits Rectangle {
+    in-out property <string> text;
+    in property <bool> multi-line: false;
+    in property <string> placeholder: "";
+    callback edited(string);
+
+    border-width: 1px;
+    border-color: Theme.border-color;
+    background: Theme.background;
+    border-radius: 6px;
+    height: root.multi-line ? 80px : 36px;
+
+    HorizontalLayout {
+        padding-left: 8px;
+        padding-right: 8px;
+        
+        if (!root.multi-line) : TextInput {
+            text: root.text;
+            edited => {
+                root.text = self.text;
+                root.edited(self.text);
+            }
+            font-family: Theme.font-family;
+            color: Theme.text;
+            vertical-alignment: center;
+        }
+
+        if (root.multi-line) : TextEdit {
+            text: root.text;
+            edited => {
+                root.text = self.text;
+                root.edited(self.text);
+            }
+            font-family: Theme.font-family;
+        }
+    }
+}

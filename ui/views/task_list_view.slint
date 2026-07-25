@@ -1,0 +1,107 @@
+import { Theme } from "../Theme.slint";
+import { ScrollView, LineEdit, Button } from "std-widgets.slint";
+import { TaskListItem } from "../components/modules/task_list_item.slint";
+import { SlintTask } from "../types.slint";
+
+export component TaskListView inherits Rectangle {
+    in property <bool> is-mobile;
+    in property <[SlintTask]> tasks;
+    callback create-task(string, string, string, int);
+    callback update-task-status(string, string);
+    callback delete-task(string);
+    
+    property <string> new-task-title: "";
+    property <string> selected-filter: "All";
+
+    HorizontalLayout {
+        spacing: 20px;
+        
+        // Center Area (Task List)
+        VerticalLayout {
+            horizontal-stretch: 2;
+            spacing: 16px;
+            
+            Text {
+                text: "タスク一覧";
+                font-size: 24px;
+                font-family: Theme.font-family;
+                font-weight: 700;
+                color: Theme.text;
+            }
+            
+            // Quick Add Row
+            HorizontalLayout {
+                spacing: 8px;
+                height: 40px;
+                task_input := LineEdit {
+                    horizontal-stretch: 1;
+                    placeholder-text: "新しいタスクを入力...";
+                    text <=> root.new-task-title;
+                    accepted => {
+                        if (root.new-task-title != "") {
+                            root.create-task(root.new-task-title, "", "", 0);
+                            root.new-task-title = "";
+                        }
+                    }
+                }
+                Button {
+                    text: "追加";
+                    clicked => {
+                        if (root.new-task-title != "") {
+                            root.create-task(root.new-task-title, "", "", 0);
+                            root.new-task-title = "";
+                        }
+                    }
+                }
+            }
+            
+            // Filters Row
+            HorizontalLayout {
+                spacing: 8px;
+                Button { text: "すべて"; clicked => { root.selected-filter = "All"; } }
+                Button { text: "未完了"; clicked => { root.selected-filter = "Todo"; } }
+                Button { text: "完了"; clicked => { root.selected-filter = "Done"; } }
+                Rectangle { horizontal-stretch: 1; }
+            }
+            
+            ScrollView {
+                VerticalLayout {
+                    spacing: 8px;
+                    for task in root.tasks : TaskListItem {
+                        visible: root.selected-filter == "All" || (root.selected-filter == "Todo" && task.status != "done") || (root.selected-filter == "Done" && task.status == "done");
+                        title: task.title;
+                        checked: task.status == "done";
+                        time-label: task.due_date;
+                        toggled(val) => { root.update-task-status(task.id, val ? "done" : "todo"); }
+                        adjust-clicked => { root.delete-task(task.id); } // Temporarily map gear to delete or details
+                    }
+                }
+            }
+        }
+        
+        // Right Column (Task Details / WBS)
+        if !root.is-mobile : Rectangle {
+            horizontal-stretch: 1;
+            background: Theme.card-bg;
+            border-radius: Theme.border-radius-card;
+            border-width: 1px;
+            border-color: Theme.border-color;
+            
+            VerticalLayout {
+                padding: Theme.padding-normal;
+                spacing: 16px;
+                Text {
+                    text: "タスク詳細";
+                    font-size: 18px;
+                    font-weight: 700;
+                    color: Theme.text;
+                }
+                Text {
+                    text: "選択されたタスクの詳細やWBSがここに表示されます。";
+                    color: Theme.text-sub;
+                    wrap: word-wrap;
+                }
+            }
+        }
+    }
+}

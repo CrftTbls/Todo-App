@@ -1,0 +1,135 @@
+import { Theme } from "../Theme.slint";
+import { ScrollView, Button, TextEdit } from "std-widgets.slint";
+
+import { TriggerConfigDetailed } from "../components/configs/trigger_config_detailed.slint";
+import { TriggerConfigMedium } from "../components/configs/trigger_config_medium.slint";
+import { TriggerConfigCompact } from "../components/configs/trigger_config_compact.slint";
+import { RecurrenceConfigDetailed } from "../components/configs/recurrence_config_detailed.slint";
+import { RecurrenceConfigMedium } from "../components/configs/recurrence_config_medium.slint";
+import { RecurrenceConfigCompact } from "../components/configs/recurrence_config_compact.slint";
+import { ButtonGroup } from "../components/modules/button_group.slint";
+
+export component TaskEditView inherits Rectangle {
+    in property <bool> is-mobile;
+    in property <bool> is-tablet;
+    in property <bool> is-compact;
+    
+    in-out property <string> local-view: "main";
+    in-out property <string> task-title: "";
+    in-out property <string> trigger-summary: "未設定";
+    in-out property <string> recurrence-summary: "なし";
+    
+    callback save-clicked();
+    callback cancel-clicked();
+
+    VerticalLayout {
+        padding: Theme.padding-normal;
+        spacing: 16px;
+        
+        HorizontalLayout {
+            height: 40px;
+            spacing: 10px;
+            Button {
+                text: root.local-view != "main" ? "✕ 戻る" : "✕ キャンセル";
+                clicked => { 
+                    if (root.local-view != "main") {
+                        root.local-view = "main";
+                    } else {
+                        root.cancel-clicked();
+                    }
+                }
+            }
+            Rectangle {}
+            Text {
+                text: root.local-view == "triggers" ? "リマインダー詳細設定" 
+                    : root.local-view == "recurrence" ? "繰り返し詳細設定"
+                    : "タスク編集";
+                font-family: Theme.font-family;
+                font-size: 20px;
+                font-weight: 700;
+                color: Theme.text;
+                vertical-alignment: center;
+            }
+            Rectangle {}
+        }
+        
+        Rectangle {
+            vertical-stretch: 1;
+            
+            main-scroll := ScrollView {
+                width: 100%;
+                height: 100%;
+                visible: root.local-view == "main";
+                viewport-height: form-layout.preferred-height;
+                
+                form-layout := VerticalLayout {
+                    spacing: 16px;
+                    
+                    Text { text: "タスク名"; color: Theme.text-sub; font-size: 12px; }
+                    TextEdit {
+                        text: root.task-title;
+                        edited => { root.task-title = self.text; }
+                        height: 100px;
+                        font-family: Theme.font-family;
+                    }
+                    
+                    // 1. Desktop layout
+                    if (!root.is-mobile && !root.is-tablet && !root.is-compact) : HorizontalLayout {
+                        spacing: 20px;
+                        TriggerConfigDetailed {
+                            horizontal-stretch: 1;
+                        }
+                        RecurrenceConfigDetailed {
+                            horizontal-stretch: 1;
+                        }
+                    }
+                    
+                    // 2. Tablet layout
+                    if ((root.is-tablet || root.is-compact) && !root.is-mobile) : VerticalLayout {
+                        spacing: 16px;
+                        TriggerConfigMedium {
+                            location-summary: root.trigger-summary;
+                            open-location-dialog => { root.local-view = "triggers"; }
+                        }
+                        RecurrenceConfigMedium {
+                            summary-text: root.recurrence-summary;
+                            open-exclusions-dialog => { root.local-view = "recurrence"; }
+                        }
+                    }
+                    
+                    // 3. Mobile layout
+                    if (root.is-mobile) : VerticalLayout {
+                        spacing: 12px;
+                        TriggerConfigCompact {
+                            summary-text: root.trigger-summary;
+                            clicked => { root.local-view = "triggers"; }
+                        }
+                        RecurrenceConfigCompact {
+                            summary-text: root.recurrence-summary;
+                            clicked => { root.local-view = "recurrence"; }
+                        }
+                    }
+
+                    Rectangle { height: 10px; }
+
+                    ButtonGroup {
+                        primary-text: "保存";
+                        secondary-text: "キャンセル";
+                        primary-clicked => { root.save-clicked(); }
+                        secondary-clicked => { root.cancel-clicked(); }
+                    }
+                }
+            }
+            
+            if (root.local-view == "triggers" && (root.is-mobile || root.is-compact)) : TriggerConfigDetailed {
+                width: 100%;
+                height: 100%;
+            }
+            
+            if (root.local-view == "recurrence" && (root.is-mobile || root.is-compact)) : RecurrenceConfigDetailed {
+                width: 100%;
+                height: 100%;
+            }
+        }
+    }
+}

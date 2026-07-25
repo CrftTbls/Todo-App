@@ -1,0 +1,48 @@
+import { Theme } from "../../Theme.slint";
+
+export component CalendarCell inherits Rectangle {
+    in property <string> day-text;
+    in property <int> event-count: 0;
+    in property <bool> selected: false;
+    in property <bool> is-today: false;
+    in property <bool> is-current-month: true;
+    callback clicked();
+
+    background: root.selected ? Theme.primary 
+              : root.is-today ? Theme.border-color 
+              : Theme.card-bg;
+              
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: root.selected ? Theme.primary : Theme.border-color;
+    
+    ta := TouchArea {
+        clicked => { root.clicked(); }
+    }
+
+    VerticalLayout {
+        padding: 4px;
+        
+        Text {
+            text: root.day-text;
+            color: !root.is-current-month ? Theme.text-sub 
+                 : root.selected ? Theme.text 
+                 : Theme.text;
+            font-family: Theme.font-family;
+            font-size: 14px;
+            font-weight: root.is-today ? 700 : 400;
+        }
+
+        Rectangle {}
+
+        if (root.event-count > 0) : HorizontalLayout {
+            alignment: center;
+            Rectangle {
+                height: 6px;
+                width: 6px;
+                background: root.selected ? Theme.text : Theme.warning;
+                border-radius: 3px;
+            }
+        }
+    }
+}

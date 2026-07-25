@@ -1,0 +1,71 @@
+import { Theme } from "../../Theme.slint";
+import { CustomButton } from "../base/custom_button.slint";
+
+export component ConflictChoiceCard inherits Rectangle {
+    in property <string> title;
+    in property <string> device-name;
+    in property <string> updated-time;
+    in property <string> content-preview;
+    callback select-clicked();
+
+    background: Theme.card-bg;
+    border-radius: Theme.border-radius-card;
+    border-width: 2px;
+    border-color: Theme.border-color;
+    height: 180px;
+
+    VerticalLayout {
+        padding: Theme.padding-normal;
+        spacing: 10px;
+
+        HorizontalLayout {
+            Text {
+                text: root.title;
+                color: Theme.text;
+                font-family: Theme.font-family;
+                font-size: 16px;
+                font-weight: 700;
+            }
+            Rectangle {}
+            Text {
+                text: root.device-name;
+                color: Theme.primary;
+                font-family: Theme.font-family;
+                font-size: 12px;
+                font-weight: 600;
+            }
+        }
+
+        Text {
+            text: "更新日時: " + root.updated-time;
+            color: Theme.text-sub;
+            font-family: Theme.font-family;
+            font-size: 12px;
+        }
+
+        Rectangle {
+            background: Theme.background;
+            border-radius: 4px;
+            height: 60px;
+            
+            HorizontalLayout {
+                padding: 6px;
+                Text {
+                    text: root.content-preview;
+                    color: Theme.text;
+                    font-family: Theme.font-family;
+                    font-size: 13px;
+                    wrap: word-wrap;
+                }
+            }
+        }
+
+        CustomButton {
+            text: "このバージョンを採用";
+            bg-color: Theme.primary;
+            hover-color: Theme.primary-hover;
+            clicked => { root.select-clicked(); }
+            height: 32px;
+        }
+    }
+}
