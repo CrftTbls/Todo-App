@@ -50,6 +50,11 @@ impl DbManager {
             .connection_customizer(Box::new(SqliteConnectionCustomizer))
             .build(manager)?;
             
+        {
+            let conn = pool.get().map_err(AppError::from)?;
+            init_db(&conn).map_err(|e| AppError::InternalError(e.to_string()))?;
+        }
+            
         Ok(Self { pool })
     }
 
@@ -99,4 +104,65 @@ impl DbManager {
         
         Ok(result)
     }
+}
+
+fn init_db(conn: &rusqlite::Connection) -> rusqlite::Result<()> {
+    conn.execute_batch(
+        "
+        CREATE TABLE IF NOT EXISTS tasks (
+            id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            status TEXT NOT NULL,
+            priority TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            completed_at TEXT,
+            due_date TEXT,
+            due_reminder BOOLEAN NOT NULL,
+            parent_id TEXT,
+            chain_id TEXT,
+            chain_order INTEGER,
+            recurrence_rule TEXT,
+            recurrence_interval INTEGER,
+            recurrence_days TEXT,
+            recurrence_dom INTEGER,
+            recurrence_limit_type TEXT,
+            recurrence_limit_count INTEGER,
+            recurrence_limit_date TEXT,
+            exclude_dates TEXT NOT NULL,
+            markdown_path TEXT NOT NULL,
+            last_device_id TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date);
+        CREATE INDEX IF NOT EXISTS idx_tasks_parent_id ON tasks(parent_id);
+        CREATE INDEX IF NOT EXISTS idx_tasks_chain_id_order ON tasks(chain_id, chain_order);
+
+        CREATE TABLE IF NOT EXISTS triggers (
+            id TEXT PRIMARY KEY,
+            task_id TEXT NOT NULL,
+            trigger_type TEXT NOT NULL,
+            trigger_time TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_triggers_task_id ON triggers(task_id);
+
+        CREATE TABLE IF NOT EXISTS holidays (
+            id TEXT PRIMARY KEY,
+            date TEXT NOT NULL UNIQUE,
+            name TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_holidays_date ON holidays(date);
+
+        CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS paired_devices (
+            device_id TEXT PRIMARY KEY,
+            device_name TEXT NOT NULL,
+            last_sync_at TEXT NOT NULL
+        );
+        "
+    )?;
+    Ok(())
 }

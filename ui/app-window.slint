@@ -1,21 +1,144 @@
-import { Button, VerticalBox } from "std-widgets.slint";
+import { Theme } from "Theme.slint";
+import { Button } from "std-widgets.slint";
+
+import { SlintTask } from "types.slint";
+export { SlintTask }
+
+
+import { TaskListView } from "views/task_list_view.slint";
+import { MemoView } from "views/memo_view.slint";
+import { TaskEditView } from "views/task_edit_view.slint";
+import { ChecklistView } from "views/checklist_view.slint";
+import { WbsView } from "views/wbs_view.slint";
+import { CalendarView } from "views/calendar_view.slint";
+import { TrashView } from "views/trash_view.slint";
+import { SettingsView } from "views/settings_view.slint";
+import { TutorialView } from "views/tutorial_view.slint";
 
 export component AppWindow inherits Window {
-    in-out property <int> counter: 42;
-    in-out property <string> status-text: "No connection";
-    callback request-increase-value();
-    VerticalBox {
-        Text {
-            text: "Counter: \{root.counter}";
+    title: "Plan & Do";
+    background: Theme.background;
+    min-width: 360px;
+    min-height: 520px;
+    preferred-width: 800px;
+    preferred-height: 600px;
+    
+    // Multi-stage responsive breakpoints (SSOT)
+    out property <bool> is-mobile: root.width < Theme.mobile-width-breakpoint;
+    out property <bool> is-tablet: root.width < Theme.tablet-width-breakpoint;
+    out property <bool> is-compact: root.height < Theme.compact-height-breakpoint;
+    
+    in-out property <string> current-view: "tasks"; // "tasks" | "memo" | "edit" | "checklist" | "wbs" | "calendar" | "trash" | "settings" | "tutorial"
+    
+    in-out property <[SlintTask]> tasks: [];
+    callback load-tasks();
+    callback create-task(string, string, string, int);
+    callback update-task-status(string, string);
+    callback delete-task(string);
+    // Desktop Sidebar Navigation (Absolute Positioning)
+    Rectangle {
+        x: 0px;
+        y: 0px;
+        width: 220px;
+        height: root.height;
+        visible: !root.is-mobile;
+        background: Theme.card-bg;
+        VerticalLayout {
+            padding: Theme.padding-normal;
+            spacing: 24px;
+            
+            Text {
+                text: "✨ Plan & Do";
+                font-family: Theme.font-family;
+                font-size: 22px;
+                font-weight: 700;
+                color: Theme.text;
+            }
+            
+            VerticalLayout {
+                spacing: 10px;
+                
+                Button { text: "📋 タスク実行"; clicked => { root.current-view = "tasks"; } }
+                Button { text: "📝 メモ整理"; clicked => { root.current-view = "memo"; } }
+                Button { text: "⚙️ タスク詳細編集"; clicked => { root.current-view = "edit"; } }
+                Button { text: "🎒 チェックリスト"; clicked => { root.current-view = "checklist"; } }
+                Button { text: "🔗 WBSフロー"; clicked => { root.current-view = "wbs"; } }
+                Button { text: "📅 カレンダー"; clicked => { root.current-view = "calendar"; } }
+                Button { text: "🗑️ ゴミ箱"; clicked => { root.current-view = "trash"; } }
+                Button { text: "🛠️ 設定"; clicked => { root.current-view = "settings"; } }
+                Button { text: "📖 チュートリアル"; clicked => { root.current-view = "tutorial"; } }
+            }
+            Rectangle { vertical-stretch: 1; }
         }
-        Text {
-            text: "Status: \{root.status-text}";
-        }
+    }
+    
+    // Main Screen Content Area (Absolute Positioning / Filling window)
+    VerticalLayout {
+        x: 0px;
+        y: 0px;
+        width: root.width;
+        height: root.height;
+        padding-left: root.is-mobile ? Theme.padding-normal : 220px + Theme.padding-normal;
+        padding-right: Theme.padding-normal;
+        padding-top: Theme.padding-normal;
+        padding-bottom: Theme.padding-normal;
 
-        Button {
-            text: "Send Ping to Backend";
-            clicked => {
-                root.request-increase-value();
+        Rectangle {
+            vertical-stretch: 1;
+            
+            if (root.current-view == "tasks") : TaskListView {
+                is-mobile: root.is-mobile;
+                tasks: root.tasks;
+                create-task(title, parent_id, chain_id, chain_order) => { root.create-task(title, parent_id, chain_id, chain_order); }
+                update-task-status(id, status) => { root.update-task-status(id, status); }
+                delete-task(id) => { root.delete-task(id); }
+            }
+            if (root.current-view == "memo") : MemoView {
+                is-mobile: root.is-mobile;
+            }
+            if (root.current-view == "edit") : TaskEditView {
+                is-mobile: root.is-mobile;
+                is-tablet: root.is-tablet;
+                is-compact: root.is-compact;
+                save-clicked => { root.current-view = "tasks"; }
+                cancel-clicked => { root.current-view = "tasks"; }
+            }
+            if (root.current-view == "checklist") : ChecklistView {
+                is-mobile: root.is-mobile;
+                back-clicked => { root.current-view = "tasks"; }
+            }
+            if (root.current-view == "wbs") : WbsView {
+                is-mobile: root.is-mobile;
+                back-clicked => { root.current-view = "tasks"; }
+            }
+            if (root.current-view == "calendar") : CalendarView {
+                is-mobile: root.is-mobile;
+                cell-clicked(date) => { root.current-view = "tasks"; }
+            }
+            if (root.current-view == "trash") : TrashView {
+                is-mobile: root.is-mobile;
+            }
+            if (root.current-view == "settings") : SettingsView {
+                is-mobile: root.is-mobile;
+            }
+            if (root.current-view == "tutorial") : TutorialView {
+                finish-clicked => { root.current-view = "tasks"; }
+            }
+        }
+        
+        // Mobile Bottom Navigation Bar
+        if (root.is-mobile) : Rectangle {
+            height: 64px;
+            background: Theme.card-bg;
+            HorizontalLayout {
+                padding: Theme.padding-normal;
+                spacing: 8px;
+                
+                Button { text: "タスク"; clicked => { root.current-view = "tasks"; } }
+                Button { text: "メモ"; clicked => { root.current-view = "memo"; } }
+                Button { text: "編集"; clicked => { root.current-view = "edit"; } }
+                Button { text: "カレンダー"; clicked => { root.current-view = "calendar"; } }
+                Button { text: "設定"; clicked => { root.current-view = "settings"; } }
             }
         }
     }

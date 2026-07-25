@@ -3,6 +3,7 @@
 pub mod errors;
 pub mod infra;
 pub mod message;
+pub mod features;
 
 use infra::db::DbManager;
 

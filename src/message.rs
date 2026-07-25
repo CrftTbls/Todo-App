@@ -11,6 +11,11 @@ pub enum UiCommand {
     UpdateSetting { key: String, value: String },
     /// MarkdownディレクトリをフルスキャンしてキャッシュDBを完全に再構成（リビルド）する要求
     RebuildDatabase,
+    GetTasks,
+    CreateTask { title: String, parent_id: Option<String>, chain_id: Option<String>, chain_order: Option<i64> },
+    UpdateTask(crate::features::task::models::Task),
+    UpdateTaskStatus { id: String, status: String },
+    DeleteTask { id: String },
 }
 
 /// バックグラウンド監視プロセスからメインロジックへの非同期イベント通知
@@ -35,4 +40,8 @@ pub enum LogicEvent {
     SettingsLoaded(HashMap<String, String>),
     DatabaseRebuilt,
     ErrorOccurred(String),
+    TasksLoaded(Vec<crate::features::task::models::Task>),
+    TaskCreated(crate::features::task::models::Task),
+    TaskUpdated(crate::features::task::models::Task),
+    TaskDeleted(String),
 }

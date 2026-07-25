@@ -8,46 +8,62 @@ use std::path::PathBuf;
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use slint::ComponentHandle;
 
-mod errors;
-mod infra;
-mod message;
-
-use errors::Result;
-use infra::db::DbManager;
-use message::{BackendMessage, BackgroundEvent, LogicEvent, UiCommand};
+use todo_app_core::errors::{AppError, Result};
+use todo_app_core::infra::db::DbManager;
+use todo_app_core::message::{BackendMessage, BackgroundEvent, LogicEvent, UiCommand};
 
 slint::include_modules!();
+
+fn to_slint_task(task: &todo_app_core::features::task::models::Task) -> SlintTask {
+    SlintTask {
+        id: task.id.clone().into(),
+        title: task.title.clone().into(),
+        status: task.status.as_str().into(),
+        priority: task.priority.as_str().into(),
+        due_date: task.due_date.clone().unwrap_or_default().into(),
+        parent_id: task.parent_id.clone().unwrap_or_default().into(),
+        chain_id: task.chain_id.clone().unwrap_or_default().into(),
+        chain_order: task.chain_order.unwrap_or(0) as i32,
+    }
+}
 
 /// バックグラウンドから送られてきたUI更新イベントを適用する
 fn handle_logic_event(ui: &AppWindow, event: LogicEvent) {
     match event {
         LogicEvent::Pong => {
             println!("UI received Pong");
-            ui.set_status_text("Received Pong from Backend".into());
-            ui.set_counter(ui.get_counter() + 1);
         }
         LogicEvent::SettingsLoaded(settings) => {
             println!("UI received settings: {:?}", settings);
-            ui.set_status_text(format!("Settings loaded count: {}", settings.len()).into());
         }
         LogicEvent::DatabaseRebuilt => {
             println!("UI received DatabaseRebuilt signal");
-            ui.set_status_text("Database rebuilt successfully".into());
         }
         LogicEvent::ErrorOccurred(err) => {
             eprintln!("Error in backend: {}", err);
-            ui.set_status_text(format!("Error: {}", err).into());
         }
+        LogicEvent::TasksLoaded(tasks) => {
+            let slint_tasks: Vec<SlintTask> = tasks.iter().map(to_slint_task).collect();
+            let model = slint::VecModel::from(slint_tasks);
+            ui.set_tasks(slint::ModelRc::new(model));
+        }
+        LogicEvent::TaskCreated(_task) => {
+            // 作成完了したら一覧を再取得するために、UI側に再読込を要求するか
+            // ここで直接ロードタスクを投げる（今回はUIがイベントをハンドリングしてload-tasksをトリガーする設計も可能だが、
+            // Rust側で直接再クエリをかけてUIを更新するのがシンプル）
+        }
+        LogicEvent::TaskUpdated(_task) => {}
+        LogicEvent::TaskDeleted(_id) => {}
     }
 }
 
 /// UIのイベントループに対し、安全に更新クロージャを投射する（パニック耐性・スレッド安全）
-fn send_to_ui(ui_weak: &slint::Weak<AppWindow>, event: LogicEvent) -> crate::errors::Result<()> {
+fn send_to_ui(ui_weak: &slint::Weak<AppWindow>, event: LogicEvent) -> todo_app_core::errors::Result<()> {
     ui_weak
         .upgrade_in_event_loop(move |ui| {
             handle_logic_event(&ui, event);
         })
-        .map_err(|e| crate::errors::AppError::UiCommunicationError(e.to_string()))
+        .map_err(|e| todo_app_core::errors::AppError::UiCommunicationError(e.to_string()))
 }
 
 /// メインロジックスレッド。すべてのメッセージをシリアル化して処理する。
@@ -55,11 +71,13 @@ fn start_logic_thread(
     rx: Receiver<BackendMessage>,
     db: Arc<DbManager>,
     ui_weak: slint::Weak<AppWindow>,
+    tx: Sender<BackendMessage>,
 ) {
     std::thread::spawn(move || {
         while let Ok(msg) = rx.recv() {
             let ui_weak_clone = ui_weak.clone();
             let db_clone = db.clone();
+            let tx_clone = tx.clone();
 
             match msg {
                 BackendMessage::Ui(cmd) => {
@@ -68,7 +86,6 @@ fn start_logic_thread(
                             send_to_ui(&ui_weak_clone, LogicEvent::Pong)
                         }
                         UiCommand::GetSettings => {
-                            // 設定テーブル未存在時はDBエラーとなるが、パニックを起こさず安全にハンドルしてUIに返す
                             let db_res = db_clone.get_connection().and_then(|conn| {
                                 let mut stmt = conn.prepare("SELECT key, value FROM settings;")?;
                                 let rows = stmt.query_map([], |row| {
@@ -89,7 +106,6 @@ fn start_logic_thread(
                             }
                         }
                         UiCommand::UpdateSetting { key, value } => {
-                            // データの競合・ON DELETE CASCADEでの子レコード誤消去を防止するため、UPSERT(ON CONFLICT DO UPDATE)を使用
                             let db_res = db_clone.execute_transaction(move |tx| {
                                 tx.execute(
                                     "INSERT INTO settings (key, value) VALUES (?1, ?2)
@@ -104,16 +120,150 @@ fn start_logic_thread(
                             Ok(())
                         }
                         UiCommand::RebuildDatabase => {
-                            // 将来的にローカルのMarkdown/JSONを再スキャンしてキャッシュDBを完全再構築する処理を実行
-                            // execute_batch_rebuild を使用して、外部キー制約を一時オフにしてインポートのデッドロック・順序制約を回避する
                             let db_res = db_clone.execute_batch_rebuild(|_tx| {
-                                // ここにMarkdownファイル再スキャン・パース・DB上書きUPSERTのループを記述する
                                 Ok(())
                             });
                             match db_res {
                                 Ok(_) => send_to_ui(&ui_weak_clone, LogicEvent::DatabaseRebuilt),
                                 Err(e) => send_to_ui(&ui_weak_clone, LogicEvent::ErrorOccurred(format!("Database Rebuild Failed: {:?}", e))),
                             }
+                        }
+                        UiCommand::GetTasks => {
+                            let db_res = db_clone.get_connection().and_then(|conn| {
+                                let mut stmt = conn.prepare("SELECT * FROM tasks;")?;
+                                let rows = stmt.query_map([], todo_app_core::features::task::db::row_to_task)?;
+                                let mut tasks = Vec::new();
+                                for r in rows {
+                                    tasks.push(r?);
+                                }
+                                Ok(tasks)
+                            });
+                            match db_res {
+                                Ok(tasks) => send_to_ui(&ui_weak_clone, LogicEvent::TasksLoaded(tasks)),
+                                Err(e) => send_to_ui(&ui_weak_clone, LogicEvent::ErrorOccurred(format!("GetTasks failed: {:?}", e))),
+                            }
+                        }
+                        UiCommand::CreateTask { title, parent_id, chain_id, chain_order } => {
+                            let db_res = db_clone.execute_transaction(move |tx| {
+                                let id = uuid::Uuid::new_v4().to_string();
+                                let now = chrono::Local::now().to_rfc3339();
+                                let task = todo_app_core::features::task::models::Task {
+                                    id: id.clone(),
+                                    title,
+                                    status: todo_app_core::features::task::models::TaskStatus::Todo,
+                                    priority: todo_app_core::features::task::models::TaskPriority::None,
+                                    created_at: now.clone(),
+                                    updated_at: now.clone(),
+                                    completed_at: None,
+                                    due_date: None,
+                                    due_reminder: false,
+                                    parent_id: parent_id.clone(),
+                                    chain_id,
+                                    chain_order,
+                                    recurrence_rule: None,
+                                    recurrence_interval: None,
+                                    recurrence_days: None,
+                                    recurrence_dom: None,
+                                    recurrence_limit_type: None,
+                                    recurrence_limit_count: None,
+                                    recurrence_limit_date: None,
+                                    exclude_dates: "[]".to_string(),
+                                    markdown_path: "".to_string(),
+                                    last_device_id: "".to_string(),
+                                };
+                                todo_app_core::features::task::db::insert_task(tx, &task)?;
+
+                                if let Some(ref p_id) = parent_id {
+                                    todo_app_core::features::task::rules::check_and_update_parent_status(tx, p_id)?;
+                                }
+
+                                Ok(task)
+                            });
+                            match db_res {
+                                Ok(task) => {
+                                    let _ = send_to_ui(&ui_weak_clone, LogicEvent::TaskCreated(task));
+                                    let _ = tx_clone.send(BackendMessage::Ui(UiCommand::GetTasks));
+                                }
+                                Err(e) => {
+                                    let _ = send_to_ui(&ui_weak_clone, LogicEvent::ErrorOccurred(format!("CreateTask failed: {:?}", e)));
+                                }
+                            }
+                            Ok(())
+                        }
+                        UiCommand::UpdateTask(task) => {
+                            let db_res = db_clone.execute_transaction(move |tx| {
+                                todo_app_core::features::task::db::update_task(tx, &task)?;
+                                Ok(task)
+                            });
+                            match db_res {
+                                Ok(task) => {
+                                    let _ = send_to_ui(&ui_weak_clone, LogicEvent::TaskUpdated(task));
+                                    let _ = tx_clone.send(BackendMessage::Ui(UiCommand::GetTasks));
+                                }
+                                Err(e) => {
+                                    let _ = send_to_ui(&ui_weak_clone, LogicEvent::ErrorOccurred(format!("UpdateTask failed: {:?}", e)));
+                                }
+                            }
+                            Ok(())
+                        }
+                        UiCommand::UpdateTaskStatus { id, status } => {
+                            let db_res = db_clone.execute_transaction(move |tx| {
+                                let mut task = match todo_app_core::features::task::db::get_task(tx, &id)? {
+                                    Some(t) => t,
+                                    None => return Err(todo_app_core::errors::AppError::InternalError("Task not found".into())),
+                                };
+                                let new_status = match status.as_str() {
+                                    "todo" => todo_app_core::features::task::models::TaskStatus::Todo,
+                                    "done" => todo_app_core::features::task::models::TaskStatus::Done,
+                                    "canceled" => todo_app_core::features::task::models::TaskStatus::Canceled,
+                                    _ => task.status.clone(),
+                                };
+                                task.status = new_status;
+                                task.updated_at = chrono::Local::now().to_rfc3339();
+                                if task.status == todo_app_core::features::task::models::TaskStatus::Done {
+                                    task.completed_at = Some(chrono::Local::now().to_rfc3339());
+                                } else {
+                                    task.completed_at = None;
+                                }
+
+                                todo_app_core::features::task::db::update_task(tx, &task)?;
+
+                                if task.status == todo_app_core::features::task::models::TaskStatus::Done {
+                                    todo_app_core::features::task::rules::update_children_status_on_parent_done(tx, &task.id)?;
+                                }
+
+                                if let Some(ref p_id) = task.parent_id {
+                                    todo_app_core::features::task::rules::check_and_update_parent_status(tx, p_id)?;
+                                }
+
+                                Ok(task)
+                            });
+                            match db_res {
+                                Ok(task) => {
+                                    let _ = send_to_ui(&ui_weak_clone, LogicEvent::TaskUpdated(task));
+                                    let _ = tx_clone.send(BackendMessage::Ui(UiCommand::GetTasks));
+                                }
+                                Err(e) => {
+                                    let _ = send_to_ui(&ui_weak_clone, LogicEvent::ErrorOccurred(format!("UpdateTaskStatus failed: {:?}", e)));
+                                }
+                            }
+                            Ok(())
+                        }
+                        UiCommand::DeleteTask { id } => {
+                            let db_res = db_clone.execute_transaction(move |tx| {
+                                todo_app_core::features::task::db::delete_task(tx, &id)?;
+                                Ok(id)
+                            });
+                            match db_res {
+                                Ok(id) => {
+                                    let _ = send_to_ui(&ui_weak_clone, LogicEvent::TaskDeleted(id));
+                                    let _ = tx_clone.send(BackendMessage::Ui(UiCommand::GetTasks));
+                                }
+                                Err(e) => {
+                                    let _ = send_to_ui(&ui_weak_clone, LogicEvent::ErrorOccurred(format!("DeleteTask failed: {:?}", e)));
+                                }
+                            }
+                            Ok(())
                         }
                     };
 
@@ -176,14 +326,44 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let ui_weak = ui.as_weak();
 
     // 4. メインロジックおよびスケジューラの起動
-    start_logic_thread(rx, db, ui_weak);
+    start_logic_thread(rx, db, ui_weak, tx.clone());
     start_scheduler_thread(tx.clone());
 
     // 5. UIイベントコールバックの登録 (チャネルを介した非ブロッキング送信)
+
     let tx_clone = tx.clone();
-    ui.on_request_increase_value(move || {
-        let _ = tx_clone.send(BackendMessage::Ui(UiCommand::Ping));
+    ui.on_load_tasks(move || {
+        let _ = tx_clone.send(BackendMessage::Ui(UiCommand::GetTasks));
     });
+
+    let tx_clone = tx.clone();
+    ui.on_create_task(move |title, parent_id, chain_id, chain_order| {
+        let p_id = if parent_id.is_empty() { None } else { Some(parent_id.into()) };
+        let c_id = if chain_id.is_empty() { None } else { Some(chain_id.into()) };
+        let c_order = if chain_order == 0 { None } else { Some(chain_order as i64) };
+        let _ = tx_clone.send(BackendMessage::Ui(UiCommand::CreateTask {
+            title: title.into(),
+            parent_id: p_id,
+            chain_id: c_id,
+            chain_order: c_order,
+        }));
+    });
+
+    let tx_clone = tx.clone();
+    ui.on_update_task_status(move |id, status| {
+        let _ = tx_clone.send(BackendMessage::Ui(UiCommand::UpdateTaskStatus {
+            id: id.into(),
+            status: status.into(),
+        }));
+    });
+
+    let tx_clone = tx.clone();
+    ui.on_delete_task(move |id| {
+        let _ = tx_clone.send(BackendMessage::Ui(UiCommand::DeleteTask { id: id.into() }));
+    });
+
+    // 起動時に全タスク取得
+    let _ = tx.send(BackendMessage::Ui(UiCommand::GetTasks));
 
     // 6. UIイベントループの実行
     ui.run()?;
