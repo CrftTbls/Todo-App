@@ -1,0 +1,146 @@
+import { Theme } from "../Theme.slint";
+import { ViewHeader } from "../components/modules/view_header.slint";
+import { BentoCard } from "../components/base/bento_card.slint";
+import { InnerPanel } from "../components/base/inner_panel.slint";
+import { CustomButton } from "../components/base/custom_button.slint";
+import { Badge } from "../components/base/badge.slint";
+
+export component CalendarScheduleView inherits Rectangle {
+    background: transparent;
+    vertical-stretch: 1;
+    
+    VerticalLayout {
+        spacing: Theme.spacing-view;
+        vertical-stretch: 1;
+        
+        ViewHeader {
+            title: "カレンダー & リマインダー管理";
+            action-button-text: "2026年 8月 ▾";
+        }
+        
+        HorizontalLayout {
+            spacing: Theme.spacing-view;
+            vertical-stretch: 1;
+            
+            // Calendar Grid Block
+            BentoCard {
+                horizontal-stretch: 7;
+                vertical-stretch: 1;
+                
+                VerticalLayout {
+                    spacing: Theme.spacing-card;
+                    vertical-stretch: 1;
+                    
+                    Text {
+                        text: "月間スケジュール (8月)";
+                        font-family: Theme.font-family;
+                        font-size: Theme.font-size-title;
+                        font-weight: 700;
+                        color: Theme.text;
+                    }
+                    
+                    InnerPanel {
+                        panel-bg: Theme.panel-bg-dark;
+                        padding-val: Theme.padding-card;
+                        spacing-val: Theme.spacing-item;
+                        vertical-stretch: 1;
+                        
+                        Text {
+                            text: "日     月     火     水     木     金     土";
+                            font-family: Theme.font-family;
+                            font-size: Theme.font-size-body;
+                            font-weight: 700;
+                            color: Theme.text-sub;
+                        }
+                        Rectangle { height: 1px; background: #ffffff10; }
+                        
+                        InnerPanel {
+                            panel-bg: Theme.panel-bg;
+                            panel-border-color: Theme.primary-border-alpha;
+                            panel-border-width: Theme.stroke-normal;
+                            padding-val: Theme.padding-normal;
+                            spacing-val: Theme.spacing-small;
+                            
+                            Text {
+                                text: "8月 1日 (土)";
+                                font-family: Theme.font-family;
+                                font-size: Theme.font-size-body;
+                                font-weight: 700;
+                                color: Theme.primary-light;
+                            }
+                            Badge {
+                                text: "🔴 23:59 デスクトップUIのPencil再設計";
+                                badge-bg: #ef444420;
+                                badge-text-color: Theme.danger-light;
+                                is-bold: true;
+                            }
+                        }
+                        
+                        Rectangle { vertical-stretch: 1; }
+                    }
+                }
+            }
+            
+            // Right Side Reminder Triggers Block
+            BentoCard {
+                horizontal-stretch: 3;
+                vertical-stretch: 1;
+                
+                VerticalLayout {
+                    spacing: Theme.spacing-card;
+                    vertical-stretch: 1;
+                    
+                    Text {
+                        text: "🔔 個別リマインダー通知";
+                        font-family: Theme.font-family;
+                        font-size: Theme.font-size-title;
+                        font-weight: 700;
+                        color: Theme.text;
+                    }
+                    
+                    InnerPanel {
+                        panel-bg: Theme.panel-bg;
+                        padding-val: Theme.padding-normal;
+                        spacing-val: Theme.spacing-small;
+                        
+                        Text {
+                            text: "⏰ 時間指定リマインダー";
+                            font-family: Theme.font-family;
+                            font-size: 13px;
+                            font-weight: 700;
+                            color: Theme.primary-light;
+                        }
+                        Text {
+                            text: "締切 1時間前にトースト通知 + 通知音";
+                            font-family: Theme.font-family;
+                            font-size: Theme.font-size-small;
+                            color: Theme.text;
+                        }
+                    }
+                    
+                    InnerPanel {
+                        panel-bg: Theme.panel-bg;
+                        padding-val: Theme.padding-normal;
+                        spacing-val: Theme.spacing-small;
+                        
+                        Text {
+                            text: "📍 場所トリガー指定 (オプション)";
+                            font-family: Theme.font-family;
+                            font-size: 13px;
+                            font-weight: 700;
+                            color: Theme.success;
+                        }
+                        Text {
+                            text: "「オフィス到着時」に事前リマインド";
+                            font-family: Theme.font-family;
+                            font-size: Theme.font-size-small;
+                            color: Theme.text;
+                        }
+                    }
+                    
+                    Rectangle { vertical-stretch: 1; }
+                }
+            }
+        }
+    }
+}

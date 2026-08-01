@@ -1,0 +1,23 @@
+import { Theme } from "../../Theme.slint";
+
+export component InnerPanel inherits Rectangle {
+    in property <color> panel-bg: Theme.panel-bg;
+    in property <color> panel-border-color: transparent;
+    in property <length> panel-border-width: 0px;
+    in property <length> panel-radius: Theme.border-radius-panel;
+    in property <length> padding-val: Theme.padding-panel;
+    in property <length> spacing-val: Theme.spacing-small;
+    
+    background: root.panel-bg;
+    border-color: root.panel-border-color;
+    border-width: root.panel-border-width;
+    border-radius: root.panel-radius;
+    clip: true;
+    
+    VerticalLayout {
+        padding: root.padding-val;
+        spacing: root.spacing-val;
+        vertical-stretch: 1;
+        @children
+    }
+}

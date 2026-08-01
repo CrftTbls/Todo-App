@@ -1,0 +1,33 @@
+import { Theme } from "../../Theme.slint";
+
+export component Badge inherits Rectangle {
+    in property <string> text: "";
+    in property <color> badge-bg: Theme.panel-bg;
+    in property <color> badge-text-color: Theme.text;
+    in property <color> badge-border-color: transparent;
+    in property <bool> is-bold: false;
+    
+    horizontal-stretch: 0;
+    vertical-stretch: 0;
+    height: 24px;
+    
+    background: root.badge-bg;
+    border-radius: Theme.border-radius-badge;
+    border-color: root.badge-border-color;
+    border-width: Theme.stroke-normal;
+    
+    HorizontalLayout {
+        padding-left: Theme.padding-compact;
+        padding-right: Theme.padding-compact;
+        alignment: center;
+        
+        Text {
+            text: root.text;
+            font-family: Theme.font-family;
+            font-size: Theme.font-size-small;
+            font-weight: root.is-bold ? 700 : 500;
+            color: root.badge-text-color;
+            vertical-alignment: center;
+        }
+    }
+}

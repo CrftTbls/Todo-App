@@ -1,0 +1,154 @@
+import { Theme } from "../../Theme.slint";
+import { BentoCard } from "../base/bento_card.slint";
+import { CustomButton } from "../base/custom_button.slint";
+import { CustomInput } from "../base/custom_input.slint";
+import { Badge } from "../base/badge.slint";
+import { InnerPanel } from "../base/inner_panel.slint";
+
+export component TaskDetailModal inherits Rectangle {
+    in property <string> task-title: "";
+    in-out property <string> task-status: "todo"; // "todo" | "done" | "canceled"
+    in-out property <string> task-priority: "high"; // "high" | "medium" | "low" | "none"
+    in property <string> due-date: "";
+    
+    callback close();
+    callback save-task(string, string, string); // (status, priority, due_date)
+    
+    background: #00000080;
+    
+    // Background touch block
+    TouchArea {}
+    
+    BentoCard {
+        width: 800px;
+        height: 600px;
+        card-fill: Theme.card-bg;
+        has-highlight: true;
+        
+        VerticalLayout {
+            spacing: Theme.spacing-card;
+            
+            HorizontalLayout {
+                alignment: space-between;
+                
+                Text {
+                    text: "タスクのフル編集 (全属性・ステータス設定)";
+                    font-family: Theme.font-family;
+                    font-size: Theme.font-size-title;
+                    font-weight: 700;
+                    color: Theme.text;
+                }
+                
+                CustomButton {
+                    text: "✕";
+                    variant: "ghost";
+                    clicked => { root.close(); }
+                }
+            }
+            
+            // Task Title Area
+            InnerPanel {
+                panel-bg: Theme.panel-bg-dark;
+                padding-val: Theme.padding-normal;
+                
+                Text {
+                    text: root.task-title;
+                    font-family: Theme.font-family;
+                    font-size: Theme.font-size-title;
+                    font-weight: 700;
+                    color: Theme.text;
+                }
+            }
+            
+            // Status Segment (Crucial Specification Constraint 2-1: canceled only allowed in edit view)
+            VerticalLayout {
+                spacing: Theme.spacing-small;
+                
+                Text {
+                    text: "ステータス (状態): ※「キャンセル/一時保留」への変更は当編集画面からのみ操作可能";
+                    font-family: Theme.font-family;
+                    font-size: Theme.font-size-small;
+                    font-weight: 700;
+                    color: Theme.primary-light;
+                }
+                
+                HorizontalLayout {
+                    spacing: Theme.spacing-item;
+                    
+                    CustomButton {
+                        text: "未完了 (todo)";
+                        variant: root.task-status == "todo" ? "primary" : "dark";
+                        clicked => { root.task-status = "todo"; }
+                    }
+                    
+                    CustomButton {
+                        text: "完了 (done)";
+                        variant: root.task-status == "done" ? "primary" : "dark";
+                        clicked => { root.task-status = "done"; }
+                    }
+                    
+                    CustomButton {
+                        text: "キャンセル / 保留 (canceled)";
+                        variant: root.task-status == "canceled" ? "danger" : "dark";
+                        clicked => { root.task-status = "canceled"; }
+                    }
+                }
+            }
+            
+            // Priorities
+            VerticalLayout {
+                spacing: Theme.spacing-small;
+                
+                Text {
+                    text: "優先度";
+                    font-family: Theme.font-family;
+                    font-size: Theme.font-size-small;
+                    color: Theme.text-sub;
+                }
+                
+                HorizontalLayout {
+                    spacing: Theme.spacing-small;
+                    
+                    CustomButton {
+                        text: "🔴 高 (high)";
+                        variant: root.task-priority == "high" ? "danger" : "dark";
+                        clicked => { root.task-priority = "high"; }
+                    }
+                    CustomButton {
+                        text: "🟡 中 (medium)";
+                        variant: root.task-priority == "medium" ? "primary" : "dark";
+                        clicked => { root.task-priority = "medium"; }
+                    }
+                    CustomButton {
+                        text: "🟢 低 (low)";
+                        variant: root.task-priority == "low" ? "dark" : "dark";
+                        clicked => { root.task-priority = "low"; }
+                    }
+                }
+            }
+            
+            Rectangle { vertical-stretch: 1; }
+            
+            // Footer Actions
+            HorizontalLayout {
+                alignment: end;
+                spacing: Theme.spacing-item;
+                
+                CustomButton {
+                    text: "キャンセル";
+                    variant: "dark";
+                    clicked => { root.close(); }
+                }
+                
+                CustomButton {
+                    text: "変更を保存";
+                    variant: "primary";
+                    clicked => {
+                        root.save-task(root.task-status, root.task-priority, root.due-date);
+                        root.close();
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,116 @@
+import { Theme } from "../../Theme.slint";
+import { BentoCard } from "../base/bento_card.slint";
+import { Badge } from "../base/badge.slint";
+import { CustomCheckbox } from "../base/custom_checkbox.slint";
+import { InnerPanel } from "../base/inner_panel.slint";
+import { SlintTask } from "../../types.slint";
+
+export component TaskColumn inherits BentoCard {
+    in property <string> title: "タスク";
+    in property <string> count-text: "0 件";
+    in property <color> header-color: Theme.text;
+    in property <[SlintTask]> tasks: [];
+    callback toggle-status(string, string);
+    callback task-selected(string);
+    
+    card-fill: Theme.card-bg;
+    card-padding: Theme.padding-card;
+    vertical-stretch: 1;
+    
+    VerticalLayout {
+        spacing: Theme.spacing-card;
+        vertical-stretch: 1;
+        
+        HorizontalLayout {
+            alignment: space-between;
+            vertical-stretch: 0;
+            
+            Text {
+                text: root.title;
+                font-family: Theme.font-family;
+                font-size: Theme.font-size-title;
+                font-weight: 700;
+                color: root.header-color;
+            }
+            
+            Badge {
+                text: root.count-text;
+                badge-bg: #ffffff10;
+                badge-text-color: root.header-color;
+                is-bold: true;
+            }
+        }
+        
+        Flickable {
+            vertical-stretch: 1;
+            viewport-height: task-layout.preferred-height;
+            
+            task-layout := VerticalLayout {
+                spacing: Theme.spacing-small;
+                vertical-stretch: 1;
+                
+                if root.tasks.length == 0 : Rectangle {
+                    height: 120px;
+                    background: transparent;
+                    
+                    Text {
+                        text: "タスクはありません";
+                        font-family: Theme.font-family;
+                        font-size: Theme.font-size-body;
+                        color: Theme.text-muted;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+                
+                for task in root.tasks : InnerPanel {
+                    panel-bg: Theme.card-bg-hover;
+                    panel-border-color: task.status == "done" ? transparent : (task.priority == "high" ? #ef444450 : #ffffff10);
+                    panel-border-width: Theme.stroke-normal;
+                    padding-val: Theme.padding-panel;
+                    spacing-val: Theme.spacing-small;
+                    
+                    TouchArea {
+                        clicked => { root.task-selected(task.id); }
+                    }
+                    
+                    HorizontalLayout {
+                        spacing: Theme.spacing-item;
+                        alignment: space-between;
+                        
+                        HorizontalLayout {
+                            spacing: Theme.spacing-small;
+                            horizontal-stretch: 1;
+                            
+                            CustomCheckbox {
+                                checked: task.status == "done";
+                                toggled(val) => {
+                                    root.toggle-status(task.id, val ? "done" : "todo");
+                                }
+                            }
+                            
+                            Text {
+                                text: task.title;
+                                font-family: Theme.font-family;
+                                font-size: Theme.font-size-body;
+                                font-weight: task.status == "done" ? 400 : 700;
+                                color: task.status == "done" ? Theme.text-muted : Theme.text;
+                                vertical-alignment: center;
+                                wrap: word-wrap;
+                            }
+                        }
+                        
+                        if task.due_date != "" : Badge {
+                            text: task.due_date;
+                            badge-bg: task.priority == "high" ? #ef444420 : #ffffff10;
+                            badge-text-color: task.priority == "high" ? Theme.danger-light : Theme.text-sub;
+                        }
+                    }
+                }
+                
+                // End Spacer: Forces column internal container to stretch to bottom
+                Rectangle { vertical-stretch: 1; }
+            }
+        }
+    }
+}

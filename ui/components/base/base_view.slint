@@ -1,0 +1,125 @@
+import { Theme } from "../../Theme.slint";
+import { NavItem } from "./nav_item.slint";
+import { ViewHeader } from "../modules/view_header.slint";
+
+export component BaseView inherits Rectangle {
+    in-out property <string> current-view: "dashboard";
+    in property <string> view-title: "";
+    in property <string> action-button-text: "";
+    in property <string> dashboard-badge: "2";
+    
+    callback nav-changed(string);
+    callback action-clicked();
+
+    background: transparent;
+    vertical-stretch: 1;
+
+    // Custom Bento Sidebar Navigation (BaseView 一元カプセル化)
+    Rectangle {
+        x: 0px;
+        y: 0px;
+        width: Theme.sidebar-width;
+        height: root.height;
+        background: Theme.sidebar-bg;
+        border-color: #ffffff0d;
+        border-width: Theme.stroke-normal;
+        
+        VerticalLayout {
+            padding: Theme.padding-large;
+            spacing: 32px;
+            
+            // Brand Title Block
+            HorizontalLayout {
+                spacing: 10px;
+                alignment: start;
+                
+                Rectangle {
+                    width: 34px;
+                    height: 34px;
+                    border-radius: Theme.border-radius-small;
+                    background: Theme.primary;
+                    
+                    Text {
+                        text: "S";
+                        font-family: Theme.font-family;
+                        font-size: 18px;
+                        font-weight: 700;
+                        color: Theme.text;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+                
+                Text {
+                    text: "Secretarial";
+                    font-family: Theme.font-family;
+                    font-size: 18px;
+                    font-weight: 700;
+                    color: Theme.text;
+                    vertical-alignment: center;
+                }
+            }
+            
+            // Custom Navigation Items
+            VerticalLayout {
+                spacing: Theme.spacing-small;
+                
+                NavItem {
+                    icon: "⚡";
+                    label: "ダッシュボード";
+                    badge-text: root.dashboard-badge;
+                    is-active: root.current-view == "dashboard";
+                    clicked => { root.nav-changed("dashboard"); }
+                }
+                NavItem {
+                    icon: "🌿";
+                    label: "WBS・構造化";
+                    is-active: root.current-view == "wbs";
+                    clicked => { root.nav-changed("wbs"); }
+                }
+                NavItem {
+                    icon: "📝";
+                    label: "思考メモ";
+                    is-active: root.current-view == "memo";
+                    clicked => { root.nav-changed("memo"); }
+                }
+                NavItem {
+                    icon: "📅";
+                    label: "カレンダー";
+                    is-active: root.current-view == "calendar";
+                    clicked => { root.nav-changed("calendar"); }
+                }
+                NavItem {
+                    icon: "⚙️";
+                    label: "環境設定";
+                    is-active: root.current-view == "settings";
+                    clicked => { root.nav-changed("settings"); }
+                }
+            }
+            
+            Rectangle { vertical-stretch: 1; }
+        }
+    }
+
+    // Main Content Workspace
+    VerticalLayout {
+        x: Theme.sidebar-width;
+        y: 0px;
+        width: root.width - Theme.sidebar-width;
+        height: root.height;
+        padding: Theme.padding-workspace;
+
+        if (root.view-title != "") : ViewHeader {
+            title: root.view-title;
+            action-button-text: root.action-button-text;
+            action-clicked => { root.action-clicked(); }
+        }
+
+        // View Children Content Slot (vertical-stretch: 1)
+        VerticalLayout {
+            vertical-stretch: 1;
+            spacing: Theme.spacing-view;
+            @children
+        }
+    }
+}

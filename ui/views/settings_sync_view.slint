@@ -1,0 +1,153 @@
+import { Theme } from "../Theme.slint";
+import { ViewHeader } from "../components/modules/view_header.slint";
+import { BentoCard } from "../components/base/bento_card.slint";
+import { InnerPanel } from "../components/base/inner_panel.slint";
+import { CustomButton } from "../components/base/custom_button.slint";
+import { Badge } from "../components/base/badge.slint";
+
+export component SettingsSyncView inherits Rectangle {
+    background: transparent;
+    vertical-stretch: 1;
+    
+    VerticalLayout {
+        spacing: Theme.spacing-view;
+        vertical-stretch: 1;
+        
+        ViewHeader {
+            title: "環境設定 & データ同期仕様";
+        }
+        
+        HorizontalLayout {
+            spacing: Theme.spacing-view;
+            vertical-stretch: 1;
+            
+            BentoCard {
+                horizontal-stretch: 1;
+                vertical-stretch: 1;
+                
+                VerticalLayout {
+                    spacing: Theme.spacing-card;
+                    vertical-stretch: 1;
+                    
+                    Text {
+                        text: "🎨 外観 & テーマ設定";
+                        font-family: Theme.font-family;
+                        font-size: Theme.font-size-title;
+                        font-weight: 700;
+                        color: Theme.text;
+                    }
+                    
+                    InnerPanel {
+                        panel-bg: Theme.panel-bg;
+                        padding-val: Theme.padding-normal;
+                        spacing-val: Theme.spacing-small;
+                        
+                        Text {
+                            text: "カラーテーマ: Bento Dark (選択中)";
+                            font-family: Theme.font-family;
+                            font-size: 13px;
+                            font-weight: 700;
+                            color: Theme.primary-light;
+                        }
+                        Text {
+                            text: "アクセントカラー: インディゴ (#6366F1)";
+                            font-family: Theme.font-family;
+                            font-size: Theme.font-size-small;
+                            color: Theme.text;
+                        }
+                    }
+                    
+                    Rectangle { vertical-stretch: 1; }
+                }
+            }
+            
+            BentoCard {
+                horizontal-stretch: 1;
+                vertical-stretch: 1;
+                
+                VerticalLayout {
+                    spacing: Theme.spacing-card;
+                    vertical-stretch: 1;
+                    
+                    Text {
+                        text: "📁 ローカルMarkdown / Obsidian連携";
+                        font-family: Theme.font-family;
+                        font-size: Theme.font-size-title;
+                        font-weight: 700;
+                        color: Theme.text;
+                    }
+                    
+                    InnerPanel {
+                        panel-bg: Theme.panel-bg;
+                        padding-val: Theme.padding-normal;
+                        spacing-val: Theme.spacing-small;
+                        
+                        Text {
+                            text: "連携フォルダパス:";
+                            font-family: Theme.font-family;
+                            font-size: Theme.font-size-small;
+                            color: Theme.text-sub;
+                        }
+                        Text {
+                            text: "C:\\Users\\sumir\\Desktop\\obsidian\\Todo App";
+                            font-family: Theme.font-family;
+                            font-size: Theme.font-size-small;
+                            font-weight: 700;
+                            color: Theme.text;
+                        }
+                        HorizontalLayout {
+                            alignment: start;
+                            Badge {
+                                text: "同期状態: SQLite ↔ Markdown 正常同期中";
+                                badge-bg: Theme.success-alpha;
+                                badge-text-color: Theme.success;
+                                is-bold: true;
+                            }
+                        }
+                    }
+                    
+                    Rectangle { vertical-stretch: 1; }
+                }
+            }
+            
+            BentoCard {
+                horizontal-stretch: 1;
+                vertical-stretch: 1;
+                
+                VerticalLayout {
+                    spacing: Theme.spacing-card;
+                    vertical-stretch: 1;
+                    
+                    Text {
+                        text: "⚡ バックエンド & 秘書AI制御";
+                        font-family: Theme.font-family;
+                        font-size: Theme.font-size-title;
+                        font-weight: 700;
+                        color: Theme.text;
+                    }
+                    
+                    InnerPanel {
+                        panel-bg: Theme.panel-bg;
+                        padding-val: Theme.padding-normal;
+                        spacing-val: Theme.spacing-small;
+                        
+                        Text {
+                            text: "競合解決アルゴリズム: LWW (Last-Write-Wins)";
+                            font-family: Theme.font-family;
+                            font-size: Theme.font-size-small;
+                            color: Theme.text;
+                        }
+                        Text {
+                            text: "自動バックアップ: 有効 (1日1回)";
+                            font-family: Theme.font-family;
+                            font-size: Theme.font-size-small;
+                            color: Theme.text;
+                        }
+                    }
+                    
+                    Rectangle { vertical-stretch: 1; }
+                }
+            }
+        }
+    }
+}

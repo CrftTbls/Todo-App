@@ -1,0 +1,68 @@
+import { Theme } from "../../Theme.slint";
+
+export component NavItem inherits Rectangle {
+    in property <string> icon: "";
+    in property <string> label: "";
+    in property <string> badge-text: "";
+    in property <bool> is-active: false;
+    callback clicked();
+    
+    background: root.is-active ? Theme.primary-alpha : (touch.has-hover ? #ffffff0a : transparent);
+    border-radius: Theme.border-radius-small;
+    border-color: root.is-active ? Theme.primary-border-alpha : transparent;
+    border-width: root.is-active ? Theme.stroke-normal : 0px;
+    height: Theme.input-height-normal;
+    
+    touch := TouchArea {
+        clicked => { root.clicked(); }
+    }
+    
+    HorizontalLayout {
+        padding-left: Theme.padding-panel;
+        padding-right: Theme.padding-panel;
+        spacing: Theme.spacing-small;
+        alignment: space-between;
+        
+        HorizontalLayout {
+            spacing: Theme.spacing-small;
+            alignment: start;
+            
+            Text {
+                text: root.icon;
+                font-family: Theme.font-family;
+                font-size: Theme.font-size-body;
+                vertical-alignment: center;
+            }
+            
+            Text {
+                text: root.label;
+                font-family: Theme.font-family;
+                font-size: Theme.font-size-body;
+                font-weight: root.is-active ? 700 : 500;
+                color: root.is-active ? Theme.primary-light : Theme.text-sub;
+                vertical-alignment: center;
+            }
+        }
+        
+        if root.badge-text != "" : Rectangle {
+            background: root.is-active ? Theme.primary : #ffffff15;
+            border-radius: Theme.border-radius-panel;
+            
+            HorizontalLayout {
+                padding-left: Theme.padding-compact;
+                padding-right: Theme.padding-compact;
+                padding-top: 2px;
+                padding-bottom: 2px;
+                
+                Text {
+                    text: root.badge-text;
+                    font-family: Theme.font-family;
+                    font-size: Theme.font-size-small;
+                    font-weight: 700;
+                    color: Theme.text;
+                    vertical-alignment: center;
+                }
+            }
+        }
+    }
+}

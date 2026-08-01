@@ -1,0 +1,27 @@
+import { Theme } from "../../Theme.slint";
+
+export component BentoCard inherits Rectangle {
+    in property <bool> has-highlight: false;
+    in property <bool> auto-spacer: false;
+    in property <color> card-fill: Theme.card-bg;
+    in property <color> stroke-color: root.has-highlight ? Theme.card-stroke-highlight : Theme.card-stroke;
+    in property <length> stroke-width: root.has-highlight ? Theme.stroke-bold : Theme.stroke-normal;
+    in property <length> card-padding: Theme.padding-card;
+    in property <length> card-radius: Theme.border-radius-card;
+    
+    background: root.card-fill;
+    border-radius: root.card-radius;
+    border-color: root.stroke-color;
+    border-width: root.stroke-width;
+    clip: true;
+    vertical-stretch: 1;
+    
+    VerticalLayout {
+        padding: root.card-padding;
+        spacing: Theme.spacing-card;
+        vertical-stretch: 1;
+        @children
+        
+        if (root.auto-spacer) : Rectangle { vertical-stretch: 1; }
+    }
+}

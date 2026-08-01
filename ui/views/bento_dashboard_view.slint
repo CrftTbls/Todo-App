@@ -1,0 +1,97 @@
+import { Theme } from "../Theme.slint";
+import { ViewHeader } from "../components/modules/view_header.slint";
+import { HeroTaskCard } from "../components/modules/hero_task_card.slint";
+import { SecretaryCard } from "../components/modules/secretary_card.slint";
+import { TaskColumn } from "../components/modules/task_column.slint";
+import { CustomButton } from "../components/base/custom_button.slint";
+import { SlintTask } from "../types.slint";
+
+export component BentoDashboardView inherits Rectangle {
+    in property <[SlintTask]> today-tasks: [];
+    in property <[SlintTask]> upcoming-tasks: [];
+    in property <[SlintTask]> done-tasks: [];
+    
+    in property <string> hero-title: "デスクトップUIのPencil再設計とプロトタイピング";
+    in property <string> secretary-advice: "本日締切のタスクは2件です。まずUI設計のプロトタイプ確認を優先しましょう。";
+    
+    callback create-task(string);
+    callback toggle-task-status(string, string);
+    callback select-task(string);
+    
+    background: transparent;
+    vertical-stretch: 1;
+    
+    VerticalLayout {
+        spacing: Theme.spacing-view;
+        vertical-stretch: 1;
+        
+        // Header Bar using ViewHeader
+        ViewHeader {
+            title: "ダッシュボード & インボックス";
+            action-button-text: "+ タスクを追加 (N)";
+            action-clicked => { root.create-task(""); }
+        }
+        
+        // Row 1: Hero Task Card + Secretary Card (fixed height defined in Theme)
+        HorizontalLayout {
+            spacing: Theme.spacing-view;
+            vertical-stretch: 0;
+            height: Theme.hero-card-height;
+            
+            Rectangle {
+                horizontal-stretch: 6;
+                HeroTaskCard {
+                    task-title: root.hero-title;
+                    clicked => { root.select-task("hero"); }
+                }
+            }
+            
+            Rectangle {
+                horizontal-stretch: 4;
+                SecretaryCard {
+                    advice-text: root.secretary-advice;
+                    create-task(text) => { root.create-task(text); }
+                }
+            }
+        }
+        
+        // Row 2: 3 Group Columns (Stretches inside workspace padding boundary)
+        HorizontalLayout {
+            spacing: Theme.spacing-view;
+            vertical-stretch: 1;
+            
+            TaskColumn {
+                horizontal-stretch: 1;
+                vertical-stretch: 1;
+                title: "☀️ 今日やる事";
+                count-text: "\{root.today-tasks.length} 件";
+                header-color: Theme.primary-light;
+                tasks: root.today-tasks;
+                toggle-status(id, status) => { root.toggle-task-status(id, status); }
+                task-selected(id) => { root.select-task(id); }
+            }
+            
+            TaskColumn {
+                horizontal-stretch: 1;
+                vertical-stretch: 1;
+                title: "📅 今後";
+                count-text: "\{root.upcoming-tasks.length} 件";
+                header-color: Theme.text-sub;
+                tasks: root.upcoming-tasks;
+                toggle-status(id, status) => { root.toggle-task-status(id, status); }
+                task-selected(id) => { root.select-task(id); }
+            }
+            
+            TaskColumn {
+                horizontal-stretch: 1;
+                vertical-stretch: 1;
+                title: "✅ 完了済み";
+                count-text: "\{root.done-tasks.length} 件";
+                header-color: Theme.success;
+                tasks: root.done-tasks;
+                toggle-status(id, status) => { root.toggle-task-status(id, status); }
+                task-selected(id) => { root.select-task(id); }
+            }
+        }
+    }
+}

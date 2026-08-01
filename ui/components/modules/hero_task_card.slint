@@ -1,0 +1,81 @@
+import { Theme } from "../../Theme.slint";
+import { BentoCard } from "../base/bento_card.slint";
+import { Badge } from "../base/badge.slint";
+import { ProgressBar } from "../base/progress_bar.slint";
+
+export component HeroTaskCard inherits BentoCard {
+    in property <string> task-title: "タスクが選択されていません";
+    in property <string> due-text: "本日 23:59 締切";
+    in property <string> category-text: "仕事 / UI";
+    in property <float> progress: 0.75;
+    in property <string> subtask-text: "サブタスク: 3/4 完了";
+    callback clicked();
+    
+    has-highlight: true;
+    card-fill: Theme.card-bg;
+    height: Theme.hero-card-height;
+    
+    TouchArea {
+        clicked => { root.clicked(); }
+    }
+    
+    VerticalLayout {
+        spacing: Theme.spacing-panel;
+        alignment: space-between;
+        
+        HorizontalLayout {
+            alignment: space-between;
+            
+            Text {
+                text: "🔥 本日の最重要タスク";
+                font-family: Theme.font-family;
+                font-size: Theme.font-size-small;
+                font-weight: 700;
+                color: Theme.primary-light;
+            }
+            
+            Badge {
+                text: root.due-text;
+                badge-bg: #ef444420;
+                badge-text-color: Theme.danger-light;
+                is-bold: true;
+            }
+        }
+        
+        Text {
+            text: root.task-title;
+            font-family: Theme.font-family;
+            font-size: Theme.font-size-title;
+            font-weight: 700;
+            color: Theme.text;
+            wrap: word-wrap;
+        }
+        
+        VerticalLayout {
+            spacing: Theme.spacing-small;
+            
+            HorizontalLayout {
+                alignment: space-between;
+                
+                Text {
+                    text: root.subtask-text;
+                    font-family: Theme.font-family;
+                    font-size: Theme.font-size-small;
+                    color: Theme.text-sub;
+                }
+                
+                Text {
+                    text: root.category-text;
+                    font-family: Theme.font-family;
+                    font-size: Theme.font-size-small;
+                    color: Theme.text-muted;
+                }
+            }
+            
+            ProgressBar {
+                progress: root.progress;
+                fill-color: Theme.primary;
+            }
+        }
+    }
+}

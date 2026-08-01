@@ -1,0 +1,34 @@
+import { Theme } from "../../Theme.slint";
+import { CustomButton } from "../base/custom_button.slint";
+
+export component ViewHeader inherits Rectangle {
+    in property <string> title: "";
+    in property <string> action-button-text: "";
+    in property <bool> show-action: root.action-button-text != "";
+    
+    callback action-clicked();
+
+    background: transparent;
+    height: Theme.header-height;
+    vertical-stretch: 0;
+
+    HorizontalLayout {
+        alignment: space-between;
+        vertical-stretch: 0;
+
+        Text {
+            text: root.title;
+            font-family: Theme.font-family;
+            font-size: Theme.font-size-header;
+            font-weight: 700;
+            color: Theme.text;
+            vertical-alignment: center;
+        }
+
+        if (root.show-action) : CustomButton {
+            text: root.action-button-text;
+            variant: "primary";
+            clicked => { root.action-clicked(); }
+        }
+    }
+}

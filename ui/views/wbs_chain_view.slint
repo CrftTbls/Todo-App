@@ -1,0 +1,165 @@
+import { Theme } from "../Theme.slint";
+import { ViewHeader } from "../components/modules/view_header.slint";
+import { BentoCard } from "../components/base/bento_card.slint";
+import { InnerPanel } from "../components/base/inner_panel.slint";
+import { CustomButton } from "../components/base/custom_button.slint";
+import { Badge } from "../components/base/badge.slint";
+import { ProgressBar } from "../components/base/progress_bar.slint";
+
+export component WbsChainView inherits Rectangle {
+    background: transparent;
+    vertical-stretch: 1;
+    
+    VerticalLayout {
+        spacing: Theme.spacing-view;
+        vertical-stretch: 1;
+        
+        ViewHeader {
+            title: "WBS・チェーン構造化 (親子関係/順序依存)";
+            action-button-text: "+ チェーンを作成";
+        }
+        
+        // Row 1: Active Chain Summary Cards (fixed height defined in Theme)
+        HorizontalLayout {
+            spacing: Theme.spacing-view;
+            vertical-stretch: 0;
+            height: Theme.summary-card-height;
+            
+            Rectangle {
+                horizontal-stretch: 1;
+                BentoCard {
+                    VerticalLayout {
+                        spacing: Theme.spacing-item;
+                        Text {
+                            text: "🌿 選択中プロジェクト: 「新規機能開発フロー」";
+                            font-family: Theme.font-family;
+                            font-size: Theme.font-size-title;
+                            font-weight: 700;
+                            color: Theme.text;
+                        }
+                        Text {
+                            text: "親タスク 1 件 / サブタスク 4 件 / 依存チェーン 3 ステップ";
+                            font-family: Theme.font-family;
+                            font-size: Theme.font-size-body;
+                            color: Theme.text-sub;
+                        }
+                        ProgressBar {
+                            progress: 0.6;
+                            fill-color: Theme.primary;
+                        }
+                    }
+                }
+            }
+            
+            Rectangle {
+                horizontal-stretch: 1;
+                BentoCard {
+                    has-highlight: true;
+                    VerticalLayout {
+                        spacing: Theme.spacing-small;
+                        HorizontalLayout {
+                            alignment: start;
+                            Badge {
+                                text: "⚡ 現在のアクティブステップ (Chain Order #2)";
+                                badge-bg: Theme.success-alpha;
+                                badge-text-color: Theme.success;
+                                is-bold: true;
+                            }
+                        }
+                        Text {
+                            text: "ステップ 2: レビューを受ける (前ステップA完了により自動有効化)";
+                            font-family: Theme.font-family;
+                            font-size: Theme.font-size-body;
+                            font-weight: 700;
+                            color: Theme.text;
+                        }
+                        Text {
+                            text: "🤖 秘書アドバイス: ステップ2完了時、自動的にステップ3のリマインダーが起動します。";
+                            font-family: Theme.font-family;
+                            font-size: Theme.font-size-small;
+                            color: Theme.text-sub;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Row 2: Tree View (Stretches to bottom)
+        BentoCard {
+            vertical-stretch: 1;
+            VerticalLayout {
+                spacing: Theme.spacing-card;
+                vertical-stretch: 1;
+                Text {
+                    text: "WBS ツリー & 依存順序 (ドラッグで入れ替え可能)";
+                    font-family: Theme.font-family;
+                    font-size: Theme.font-size-body;
+                    font-weight: 700;
+                    color: Theme.text;
+                }
+                
+                InnerPanel {
+                    panel-bg: Theme.panel-bg;
+                    padding-val: Theme.padding-normal;
+                    
+                    HorizontalLayout {
+                        alignment: space-between;
+                        Text {
+                            text: "📁 見積書送付プロジェクト [親タスク]";
+                            font-family: Theme.font-family;
+                            font-size: Theme.font-size-body;
+                            font-weight: 700;
+                            color: Theme.text;
+                        }
+                        Badge {
+                            text: "自動完了連動 ON";
+                            badge-bg: Theme.success-alpha;
+                            badge-text-color: Theme.success;
+                        }
+                    }
+                }
+                
+                InnerPanel {
+                    panel-bg: Theme.panel-bg-sub;
+                    padding-val: Theme.padding-item;
+                    
+                    HorizontalLayout {
+                        alignment: space-between;
+                        Text {
+                            text: "  └ 🔗 ステップ 1: [x] 見積書を作成する (完了)";
+                            font-family: Theme.font-family;
+                            font-size: Theme.font-size-body;
+                            color: Theme.text-muted;
+                        }
+                        Text { text: "順番 1"; font-family: Theme.font-family; font-size: Theme.font-size-small; color: Theme.text-muted; }
+                    }
+                }
+                
+                InnerPanel {
+                    panel-bg: Theme.panel-bg-sub;
+                    panel-border-color: Theme.success;
+                    panel-border-width: Theme.stroke-normal;
+                    padding-val: Theme.padding-item;
+                    
+                    HorizontalLayout {
+                        alignment: space-between;
+                        Text {
+                            text: "  └ 🔗 ステップ 2: [ ] レビューを受ける (⭐ 現在実行中)";
+                            font-family: Theme.font-family;
+                            font-size: Theme.font-size-body;
+                            font-weight: 700;
+                            color: Theme.text;
+                        }
+                        Badge {
+                            text: "順番 2 (Active)";
+                            badge-bg: Theme.success-alpha;
+                            badge-text-color: Theme.success;
+                        }
+                    }
+                }
+                
+                Rectangle { vertical-stretch: 1; }
+            }
+        }
+    }
+}

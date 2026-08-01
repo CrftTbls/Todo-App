@@ -1,0 +1,162 @@
+import { Theme } from "../Theme.slint";
+import { ViewHeader } from "../components/modules/view_header.slint";
+import { BentoCard } from "../components/base/bento_card.slint";
+import { InnerPanel } from "../components/base/inner_panel.slint";
+import { CustomButton } from "../components/base/custom_button.slint";
+import { CustomInput } from "../components/base/custom_input.slint";
+import { Badge } from "../components/base/badge.slint";
+
+export component MemoStockView inherits Rectangle {
+    background: transparent;
+    vertical-stretch: 1;
+    
+    VerticalLayout {
+        spacing: Theme.spacing-view;
+        vertical-stretch: 1;
+        
+        ViewHeader {
+            title: "思考メモ & 一発タスク変換バナー";
+            action-button-text: "+ 新しいメモ";
+        }
+        
+        HorizontalLayout {
+            spacing: Theme.spacing-view;
+            vertical-stretch: 1;
+            
+            // Left Notes List
+            BentoCard {
+                horizontal-stretch: 3;
+                vertical-stretch: 1;
+                
+                VerticalLayout {
+                    spacing: Theme.spacing-panel;
+                    vertical-stretch: 1;
+                    
+                    Text {
+                        text: "メモ一覧";
+                        font-family: Theme.font-family;
+                        font-size: Theme.font-size-body;
+                        font-weight: 700;
+                        color: Theme.text;
+                    }
+                    
+                    InnerPanel {
+                        panel-bg: Theme.panel-bg;
+                        panel-border-color: Theme.primary-border-alpha;
+                        panel-border-width: Theme.stroke-normal;
+                        padding-val: Theme.padding-panel;
+                        spacing-val: Theme.spacing-small;
+                        
+                        Text {
+                            text: "💡 UIデザイン改善アイデアメモ";
+                            font-family: Theme.font-family;
+                            font-size: Theme.font-size-body;
+                            font-weight: 700;
+                            color: Theme.text;
+                        }
+                        Text {
+                            text: "思考を遮らずにそのまま書き出し...";
+                            font-family: Theme.font-family;
+                            font-size: Theme.font-size-small;
+                            color: Theme.text-sub;
+                        }
+                    }
+                    
+                    Rectangle { vertical-stretch: 1; }
+                }
+            }
+            
+            // Center Editor Block
+            BentoCard {
+                horizontal-stretch: 6;
+                vertical-stretch: 1;
+                
+                VerticalLayout {
+                    spacing: Theme.spacing-panel;
+                    vertical-stretch: 1;
+                    
+                    Text {
+                        text: "Markdown エディタ (アイデア自由書き出し)";
+                        font-family: Theme.font-family;
+                        font-size: Theme.font-size-body;
+                        font-weight: 700;
+                        color: Theme.text;
+                    }
+                    
+                    InnerPanel {
+                        panel-bg: Theme.panel-bg-dark;
+                        padding-val: Theme.padding-card;
+                        spacing-val: Theme.spacing-item;
+                        vertical-stretch: 1;
+                        
+                        Text {
+                            text: "# UIデザイン改善アイデアメモ";
+                            font-family: Theme.font-family;
+                            font-size: 18px;
+                            font-weight: 700;
+                            color: Theme.primary-light;
+                        }
+                        Text {
+                            text: "日常の業務の中で思いついた改善案をここにリストアップしておく。\n\n- [ ] 明日15時にプロトタイプUIのレビューを行う @仕事 !高\n- [x] 既存の質素なデザインからBento Box風レイアウトへ刷新\n- [-] 一時保留中デザイン案の整理 (保留)";
+                            font-family: Theme.font-family;
+                            font-size: Theme.font-size-body;
+                            color: Theme.text;
+                            wrap: word-wrap;
+                        }
+                    }
+                }
+            }
+            
+            // Right Task Conversion Banner Panel
+            BentoCard {
+                horizontal-stretch: 3;
+                vertical-stretch: 1;
+                
+                VerticalLayout {
+                    spacing: Theme.spacing-card;
+                    vertical-stretch: 1;
+                    
+                    Text {
+                        text: "⚡ 検出されたタスクバナー";
+                        font-family: Theme.font-family;
+                        font-size: Theme.font-size-body;
+                        font-weight: 700;
+                        color: Theme.text;
+                    }
+                    
+                    InnerPanel {
+                        panel-bg: Theme.primary-alpha;
+                        panel-border-color: Theme.primary-border-alpha;
+                        panel-border-width: Theme.stroke-normal;
+                        padding-val: Theme.padding-card;
+                        spacing-val: Theme.spacing-item;
+                        
+                        HorizontalLayout {
+                            alignment: start;
+                            Badge {
+                                text: "✨ メモから新規タスクを自動検出";
+                                badge-bg: transparent;
+                                badge-text-color: Theme.primary-light;
+                                is-bold: true;
+                            }
+                        }
+                        Text {
+                            text: "「明日15時にプロトタイプUIのレビューを行う」";
+                            font-family: Theme.font-family;
+                            font-size: 13px;
+                            font-weight: 700;
+                            color: Theme.text;
+                            wrap: word-wrap;
+                        }
+                        CustomButton {
+                            text: "ワンタップでアプリタスクへ登録";
+                            variant: "primary";
+                        }
+                    }
+                    
+                    Rectangle { vertical-stretch: 1; }
+                }
+            }
+        }
+    }
+}
