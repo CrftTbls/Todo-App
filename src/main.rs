@@ -6,10 +6,10 @@
 #![deny(clippy::expect_used)]
 #![deny(clippy::panic)]
 
-use std::sync::Arc;
-use std::path::PathBuf;
-use crossbeam_channel::{unbounded, Receiver, Sender};
+use crossbeam_channel::{Receiver, Sender, unbounded};
 use slint::ComponentHandle;
+use std::path::PathBuf;
+use std::sync::Arc;
 
 use todo_app_core::infra::db::DbManager;
 use todo_app_core::message::{BackendMessage, BackgroundEvent, LogicEvent, UiCommand};
@@ -56,9 +56,21 @@ fn handle_logic_event(ui: &AppWindow, event: LogicEvent) {
             eprintln!("Error in backend: {}", err);
         }
         LogicEvent::TasksLoaded(tasks) => {
-            let slint_tasks: Vec<SlintTask> = tasks.iter().map(to_slint_task).collect();
-            let model = slint::VecModel::from(slint_tasks);
-            ui.set_tasks(slint::ModelRc::new(model));
+            let today_slint_tasks: Vec<SlintTask> = tasks
+                .iter()
+                .filter(|t| t.status == todo_app_core::features::task::models::TaskStatus::Todo)
+                .map(to_slint_task)
+                .collect();
+            let done_slint_tasks: Vec<SlintTask> = tasks
+                .iter()
+                .filter(|t| t.status == todo_app_core::features::task::models::TaskStatus::Done)
+                .map(to_slint_task)
+                .collect();
+
+            ui.set_today_tasks(slint::ModelRc::new(slint::VecModel::from(
+                today_slint_tasks,
+            )));
+            ui.set_done_tasks(slint::ModelRc::new(slint::VecModel::from(done_slint_tasks)));
         }
         LogicEvent::TaskCreated(_task) => {}
         LogicEvent::TaskUpdated(_task) => {}
@@ -67,7 +79,10 @@ fn handle_logic_event(ui: &AppWindow, event: LogicEvent) {
 }
 
 /// UIのイベントループに対し、安全に更新クロージャを投射する（パニック耐性・スレッド安全）
-fn send_to_ui(ui_weak: &slint::Weak<AppWindow>, event: LogicEvent) -> todo_app_core::errors::Result<()> {
+fn send_to_ui(
+    ui_weak: &slint::Weak<AppWindow>,
+    event: LogicEvent,
+) -> todo_app_core::errors::Result<()> {
     ui_weak
         .upgrade_in_event_loop(move |ui| {
             handle_logic_event(&ui, event);
@@ -92,9 +107,7 @@ fn start_logic_thread(
             match msg {
                 BackendMessage::Ui(cmd) => {
                     let result = match *cmd {
-                        UiCommand::Ping => {
-                            send_to_ui(&ui_weak_clone, LogicEvent::Pong)
-                        }
+                        UiCommand::Ping => send_to_ui(&ui_weak_clone, LogicEvent::Pong),
                         UiCommand::GetSettings => {
                             let db_res = db_clone.get_connection().and_then(|conn| {
                                 let mut stmt = conn.prepare("SELECT key, value FROM settings;")?;
@@ -109,8 +122,13 @@ fn start_logic_thread(
                             });
 
                             match db_res {
-                                Ok(settings) => send_to_ui(&ui_weak_clone, LogicEvent::SettingsLoaded(settings)),
-                                Err(e) => send_to_ui(&ui_weak_clone, LogicEvent::ErrorOccurred(format!("DB Query failed (Normal if table not created yet): {:?}", e))),
+                                Ok(settings) => {
+                                    send_to_ui(&ui_weak_clone, LogicEvent::SettingsLoaded(settings))
+                                }
+                                Err(e) => send_to_ui(
+                                    &ui_weak_clone,
+                                    LogicEvent::ErrorOccurred(format!("DB Query failed: {:?}", e)),
+                                ),
                             }
                         }
                         UiCommand::UpdateSetting { key, value } => {
@@ -123,23 +141,36 @@ fn start_logic_thread(
                                 Ok(())
                             });
                             if let Err(e) = db_res {
-                                drop(send_to_ui(&ui_weak_clone, LogicEvent::ErrorOccurred(format!("Setting Update Failed: {:?}", e))));
+                                drop(send_to_ui(
+                                    &ui_weak_clone,
+                                    LogicEvent::ErrorOccurred(format!(
+                                        "Setting Update Failed: {:?}",
+                                        e
+                                    )),
+                                ));
                             }
                             Ok(())
                         }
                         UiCommand::RebuildDatabase => {
-                            let db_res = db_clone.execute_batch_rebuild(|_tx| {
-                                Ok(())
-                            });
+                            let db_res = db_clone.execute_batch_rebuild(|_tx| Ok(()));
                             match db_res {
                                 Ok(_) => send_to_ui(&ui_weak_clone, LogicEvent::DatabaseRebuilt),
-                                Err(e) => send_to_ui(&ui_weak_clone, LogicEvent::ErrorOccurred(format!("Database Rebuild Failed: {:?}", e))),
+                                Err(e) => send_to_ui(
+                                    &ui_weak_clone,
+                                    LogicEvent::ErrorOccurred(format!(
+                                        "Database Rebuild Failed: {:?}",
+                                        e
+                                    )),
+                                ),
                             }
                         }
                         UiCommand::GetTasks => {
                             let db_res = db_clone.get_connection().and_then(|conn| {
                                 let mut stmt = conn.prepare("SELECT * FROM tasks;")?;
-                                let rows = stmt.query_map([], todo_app_core::features::task::db::row_to_task)?;
+                                let rows = stmt.query_map(
+                                    [],
+                                    todo_app_core::features::task::db::row_to_task,
+                                )?;
                                 let mut tasks = Vec::new();
                                 for r in rows {
                                     tasks.push(r?);
@@ -147,11 +178,21 @@ fn start_logic_thread(
                                 Ok(tasks)
                             });
                             match db_res {
-                                Ok(tasks) => send_to_ui(&ui_weak_clone, LogicEvent::TasksLoaded(tasks)),
-                                Err(e) => send_to_ui(&ui_weak_clone, LogicEvent::ErrorOccurred(format!("GetTasks failed: {:?}", e))),
+                                Ok(tasks) => {
+                                    send_to_ui(&ui_weak_clone, LogicEvent::TasksLoaded(tasks))
+                                }
+                                Err(e) => send_to_ui(
+                                    &ui_weak_clone,
+                                    LogicEvent::ErrorOccurred(format!("GetTasks failed: {:?}", e)),
+                                ),
                             }
                         }
-                        UiCommand::CreateTask { title, parent_id, chain_id, chain_order } => {
+                        UiCommand::CreateTask {
+                            title,
+                            parent_id,
+                            chain_id,
+                            chain_order,
+                        } => {
                             let db_res = db_clone.execute_transaction(move |tx| {
                                 let id = uuid::Uuid::new_v4().to_string();
                                 let now = chrono::Local::now().to_rfc3339();
@@ -190,10 +231,20 @@ fn start_logic_thread(
                             match db_res {
                                 Ok(task) => {
                                     drop(send_to_ui(&ui_weak_clone, LogicEvent::TaskCreated(task)));
-                                    drop(tx_clone.send(BackendMessage::Ui(Box::new(UiCommand::GetTasks))));
+                                    drop(
+                                        tx_clone.send(BackendMessage::Ui(Box::new(
+                                            UiCommand::GetTasks,
+                                        ))),
+                                    );
                                 }
                                 Err(e) => {
-                                    drop(send_to_ui(&ui_weak_clone, LogicEvent::ErrorOccurred(format!("CreateTask failed: {:?}", e))));
+                                    drop(send_to_ui(
+                                        &ui_weak_clone,
+                                        LogicEvent::ErrorOccurred(format!(
+                                            "CreateTask failed: {:?}",
+                                            e
+                                        )),
+                                    ));
                                 }
                             }
                             Ok(())
@@ -205,11 +256,24 @@ fn start_logic_thread(
                             });
                             match db_res {
                                 Ok(task) => {
-                                    drop(send_to_ui(&ui_weak_clone, LogicEvent::TaskUpdated(*task)));
-                                    drop(tx_clone.send(BackendMessage::Ui(Box::new(UiCommand::GetTasks))));
+                                    drop(send_to_ui(
+                                        &ui_weak_clone,
+                                        LogicEvent::TaskUpdated(*task),
+                                    ));
+                                    drop(
+                                        tx_clone.send(BackendMessage::Ui(Box::new(
+                                            UiCommand::GetTasks,
+                                        ))),
+                                    );
                                 }
                                 Err(e) => {
-                                    drop(send_to_ui(&ui_weak_clone, LogicEvent::ErrorOccurred(format!("UpdateTask failed: {:?}", e))));
+                                    drop(send_to_ui(
+                                        &ui_weak_clone,
+                                        LogicEvent::ErrorOccurred(format!(
+                                            "UpdateTask failed: {:?}",
+                                            e
+                                        )),
+                                    ));
                                 }
                             }
                             Ok(())
@@ -249,10 +313,20 @@ fn start_logic_thread(
                             match db_res {
                                 Ok(task) => {
                                     drop(send_to_ui(&ui_weak_clone, LogicEvent::TaskUpdated(task)));
-                                    drop(tx_clone.send(BackendMessage::Ui(Box::new(UiCommand::GetTasks))));
+                                    drop(
+                                        tx_clone.send(BackendMessage::Ui(Box::new(
+                                            UiCommand::GetTasks,
+                                        ))),
+                                    );
                                 }
                                 Err(e) => {
-                                    drop(send_to_ui(&ui_weak_clone, LogicEvent::ErrorOccurred(format!("UpdateTaskStatus failed: {:?}", e))));
+                                    drop(send_to_ui(
+                                        &ui_weak_clone,
+                                        LogicEvent::ErrorOccurred(format!(
+                                            "UpdateTaskStatus failed: {:?}",
+                                            e
+                                        )),
+                                    ));
                                 }
                             }
                             Ok(())
@@ -265,10 +339,20 @@ fn start_logic_thread(
                             match db_res {
                                 Ok(id) => {
                                     drop(send_to_ui(&ui_weak_clone, LogicEvent::TaskDeleted(id)));
-                                    drop(tx_clone.send(BackendMessage::Ui(Box::new(UiCommand::GetTasks))));
+                                    drop(
+                                        tx_clone.send(BackendMessage::Ui(Box::new(
+                                            UiCommand::GetTasks,
+                                        ))),
+                                    );
                                 }
                                 Err(e) => {
-                                    drop(send_to_ui(&ui_weak_clone, LogicEvent::ErrorOccurred(format!("DeleteTask failed: {:?}", e))));
+                                    drop(send_to_ui(
+                                        &ui_weak_clone,
+                                        LogicEvent::ErrorOccurred(format!(
+                                            "DeleteTask failed: {:?}",
+                                            e
+                                        )),
+                                    ));
                                 }
                             }
                             Ok(())
@@ -279,19 +363,17 @@ fn start_logic_thread(
                         eprintln!("Failed to send event to UI event loop: {:?}", e);
                     }
                 }
-                BackendMessage::Background(event) => {
-                    match event {
-                        BackgroundEvent::FileChanged { path } => {
-                            println!("Backend: File change detected at {}", path);
-                        }
-                        BackgroundEvent::SchedulerTick => {
-                            println!("Backend: Scheduler tick execution");
-                        }
-                        BackgroundEvent::SyncCompleted { device_id } => {
-                            println!("Backend: Sync completed: {:?}", device_id);
-                        }
+                BackendMessage::Background(event) => match event {
+                    BackgroundEvent::FileChanged { path } => {
+                        println!("Backend: File change detected at {}", path);
                     }
-                }
+                    BackgroundEvent::SchedulerTick => {
+                        println!("Backend: Scheduler tick execution");
+                    }
+                    BackgroundEvent::SyncCompleted { device_id } => {
+                        println!("Backend: Sync completed: {:?}", device_id);
+                    }
+                },
             }
         }
     });
@@ -302,7 +384,10 @@ fn start_scheduler_thread(tx: Sender<BackendMessage>) {
     std::thread::spawn(move || {
         loop {
             std::thread::sleep(std::time::Duration::from_secs(60));
-            if tx.send(BackendMessage::Background(BackgroundEvent::SchedulerTick)).is_err() {
+            if tx
+                .send(BackendMessage::Background(BackgroundEvent::SchedulerTick))
+                .is_err()
+            {
                 break; // 送信エラー時はアプリケーション終了とみなしスレッドを破棄
             }
         }
@@ -316,7 +401,6 @@ fn resolve_desktop_db_path() -> PathBuf {
         path.push("todo.db");
         path
     } else {
-        // フォールバック（通常は発生しないが、万が一に備え安全なカレント相対パス）
         PathBuf::from("todo.db")
     }
 }
@@ -337,37 +421,44 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     start_logic_thread(rx, db, ui_weak, tx.clone());
     start_scheduler_thread(tx.clone());
 
-    // 5. UIイベントコールバックの登録 (チャネルを介した非ブロッキング送信)
-
+    // 5. UIイベントコールバックの登録
     let tx_clone = tx.clone();
     ui.on_load_tasks(move || {
         drop(tx_clone.send(BackendMessage::Ui(Box::new(UiCommand::GetTasks))));
     });
 
     let tx_clone = tx.clone();
-    ui.on_create_task(move |title, parent_id, chain_id, chain_order| {
-        let p_id = if parent_id.is_empty() { None } else { Some(parent_id.into()) };
-        let c_id = if chain_id.is_empty() { None } else { Some(chain_id.into()) };
-        let c_order = if chain_order == 0 { None } else { Some(chain_order as i64) };
-        drop(tx_clone.send(BackendMessage::Ui(Box::new(UiCommand::CreateTask {
-            title: title.into(),
-            parent_id: p_id,
-            chain_id: c_id,
-            chain_order: c_order,
-        }))));
+    ui.on_create_task(move |text| {
+        let title = text.to_string();
+        if !title.trim().is_empty() {
+            drop(
+                tx_clone.send(BackendMessage::Ui(Box::new(UiCommand::CreateTask {
+                    title,
+                    parent_id: None,
+                    chain_id: None,
+                    chain_order: None,
+                }))),
+            );
+        }
     });
 
     let tx_clone = tx.clone();
     ui.on_update_task_status(move |id, status| {
-        drop(tx_clone.send(BackendMessage::Ui(Box::new(UiCommand::UpdateTaskStatus {
-            id: id.into(),
-            status: status.into(),
-        }))));
+        drop(
+            tx_clone.send(BackendMessage::Ui(Box::new(UiCommand::UpdateTaskStatus {
+                id: id.into(),
+                status: status.into(),
+            }))),
+        );
     });
 
     let tx_clone = tx.clone();
     ui.on_delete_task(move |id| {
-        drop(tx_clone.send(BackendMessage::Ui(Box::new(UiCommand::DeleteTask { id: id.into() }))));
+        drop(
+            tx_clone.send(BackendMessage::Ui(Box::new(UiCommand::DeleteTask {
+                id: id.into(),
+            }))),
+        );
     });
 
     // 起動時に全タスク取得

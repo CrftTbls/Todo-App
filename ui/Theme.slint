@@ -1,21 +1,79 @@
 export global Theme {
-    in-out property <color> primary: #6366f1;       // Indigo blue (Accent)
-    in-out property <color> primary-hover: #4f46e5; // Hover color
-    in-out property <color> background: #0f172a;    // Deep navy (Background)
-    in-out property <color> card-bg: #1e293b;       // Slate gray (Card background)
-    in-out property <color> border-color: #334155;  // Slate border
-    in-out property <color> text: #f8fafc;          // White text
-    in-out property <color> text-sub: #94a3b8;      // Light gray subtext
+    // Bento Dark Theme Palette
+    in-out property <color> background: #090c12;        // Main background
+    in-out property <color> sidebar-bg: #11151e;        // Sidebar background
+    in-out property <color> card-bg: #151a26;           // Bento card fill
+    in-out property <color> card-bg-hover: #1b2232;     // Bento card hover fill
+    in-out property <color> card-stroke: #1e2638;       // Bento card border stroke
+    in-out property <color> card-stroke-highlight: #6366f150; // Active border stroke
     
-    in-out property <color> success: #10b981;       // Emerald green
-    in-out property <color> warning: #f59e0b;       // Amber
-    in-out property <color> danger: #ef4444;        // Rose red
+    // Sub-panel Container Fill Colors
+    in-out property <color> panel-bg-dark: #0f121a;     // Dark inner container
+    in-out property <color> panel-bg: #1e2638;          // Standard inner container
+    in-out property <color> panel-bg-sub: #181f2e;       // Alternate item container
     
+    // Accent & Alpha Colors
+    in-out property <color> primary: #6366f1;          // Indigo primary accent
+    in-out property <color> primary-light: #818cf8;    // Indigo light text/accent
+    in-out property <color> primary-hover: #4f46e5;    // Hover state
+    in-out property <color> primary-alpha: #6366f115;   // Soft indigo highlight
+    in-out property <color> primary-border-alpha: #6366f150; // Indigo border highlight
+    
+    in-out property <color> text: #f9fafb;             // Primary white text
+    in-out property <color> text-sub: #9ca3af;         // Subtext gray
+    in-out property <color> text-muted: #6b7280;       // Muted gray
+    
+    // Status & Alpha Colors
+    in-out property <color> success: #10b981;          // Emerald green
+    in-out property <color> success-alpha: #10b98120;   // Soft green highlight
+    in-out property <color> warning: #f59e0b;          // Amber
+    in-out property <color> danger: #ef4444;           // Rose red
+    in-out property <color> danger-light: #f87171;     // Rose red text
+    
+    // Typography
     in-out property <string> font-family: "Segoe UI, Malgun Gothic, Yu Gothic, system-ui, sans-serif";
+    in-out property <length> font-size-header: 24px;
+    in-out property <length> font-size-title: 16px;
+    in-out property <length> font-size-body: 14px;
+    in-out property <length> font-size-small: 12px;
     
-    in-out property <length> mobile-width-breakpoint: 680px;
-    in-out property <length> tablet-width-breakpoint: 1000px;
-    in-out property <length> compact-height-breakpoint: 600px;
+    // Layout Dimensions & Controls
+    in-out property <length> sidebar-width: 240px;
+    in-out property <length> window-min-width: 1024px;
+    in-out property <length> window-min-height: 720px;
+    in-out property <length> window-pref-width: 1440px;
+    in-out property <length> window-pref-height: 900px;
+    
+    // Fixed Component Heights
+    in-out property <length> header-height: 48px;
+    in-out property <length> hero-card-height: 180px;
+    in-out property <length> summary-card-height: 160px;
+    in-out property <length> button-height-normal: 36px;
+    in-out property <length> button-height-small: 32px;
+    in-out property <length> input-height-normal: 40px;
+    
+    // Spacing (Gaps)
+    in-out property <length> spacing-view: 24px;
+    in-out property <length> spacing-card: 16px;
+    in-out property <length> spacing-panel: 14px;
+    in-out property <length> spacing-item: 12px;
+    in-out property <length> spacing-small: 8px;
+    
+    // Padding
+    in-out property <length> padding-workspace: 32px;
+    in-out property <length> padding-card: 20px;
+    in-out property <length> padding-panel: 14px;
+    in-out property <length> padding-item: 12px;
+    in-out property <length> padding-compact: 8px;
+    in-out property <length> padding-small: 8px;
     in-out property <length> padding-normal: 16px;
-    in-out property <length> border-radius-card: 12px;
+    in-out property <length> padding-large: 24px;
+    
+    // Border Radius & Stroke
+    in-out property <length> border-radius-card: 14px;
+    in-out property <length> border-radius-panel: 10px;
+    in-out property <length> border-radius-small: 8px;
+    in-out property <length> border-radius-badge: 6px;
+    in-out property <length> stroke-normal: 1px;
+    in-out property <length> stroke-bold: 1.5px;
 }

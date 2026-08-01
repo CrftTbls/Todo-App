@@ -1,31 +1,50 @@
 import { Theme } from "../../Theme.slint";
 
 export component CustomButton inherits Rectangle {
-    in-out property <string> text;
-    in-out property <color> bg-color: Theme.primary;
-    in-out property <color> hover-color: Theme.primary-hover;
-    in-out property <bool> enabled: true;
+    in property <string> text: "";
+    in property <string> icon: "";
+    in property <string> variant: "primary"; // "primary" | "dark" | "danger" | "ghost"
+    in property <bool> is-bold: true;
     callback clicked();
-
-    background: ta.has-hover ? root.hover-color : root.bg-color;
-    border-radius: 6px;
-    height: 36px;
     
-    animate background { duration: 150ms; }
-
-    ta := TouchArea {
-        clicked => { if (root.enabled) { root.clicked(); } }
+    // Dynamic styling computed properties
+    property <color> bg-color: root.variant == "primary" ? (touch.has-hover ? Theme.primary-hover : Theme.primary) :
+                              root.variant == "danger" ? (touch.has-hover ? #dc2626 : Theme.danger) :
+                              root.variant == "dark" ? (touch.has-hover ? Theme.card-bg-hover : Theme.panel-bg) :
+                              (touch.has-hover ? Theme.primary-alpha : transparent);
+                              
+    property <color> text-color: root.variant == "ghost" ? Theme.primary-light : Theme.text;
+    
+    background: root.bg-color;
+    border-radius: Theme.border-radius-small;
+    border-color: root.variant == "dark" ? Theme.primary-border-alpha : transparent;
+    border-width: root.variant == "dark" ? Theme.stroke-normal : 0px;
+    height: Theme.button-height-normal;
+    
+    touch := TouchArea {
+        clicked => { root.clicked(); }
     }
-
+    
     HorizontalLayout {
-        padding-left: 16px;
-        padding-right: 16px;
+        padding-left: Theme.padding-normal;
+        padding-right: Theme.padding-normal;
+        spacing: Theme.spacing-small;
         alignment: center;
+        
+        if root.icon != "" : Text {
+            text: root.icon;
+            font-family: Theme.font-family;
+            font-size: Theme.font-size-body;
+            color: root.text-color;
+            vertical-alignment: center;
+        }
+        
         Text {
             text: root.text;
-            color: Theme.text;
             font-family: Theme.font-family;
-            font-weight: 600;
+            font-size: Theme.font-size-body;
+            font-weight: root.is-bold ? 700 : 500;
+            color: root.text-color;
             vertical-alignment: center;
         }
     }

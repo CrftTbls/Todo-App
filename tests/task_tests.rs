@@ -1,13 +1,20 @@
+use todo_app_core::features::task::db::{get_task, insert_task, update_task};
+use todo_app_core::features::task::models::{Task, TaskPriority, TaskStatus};
+use todo_app_core::features::task::rules::{
+    check_and_update_parent_status, get_active_chain_task, update_children_status_on_parent_done,
+};
 use todo_app_core::infra::db::DbManager;
-use todo_app_core::features::task::models::{Task, TaskStatus, TaskPriority};
-use todo_app_core::features::task::db::{insert_task, get_task, update_task};
-use todo_app_core::features::task::rules::{check_and_update_parent_status, update_children_status_on_parent_done, get_active_chain_task};
 
 fn setup_test_db() -> DbManager {
     DbManager::new(":memory:").unwrap()
 }
 
-fn create_dummy_task(id: &str, parent_id: Option<String>, chain_id: Option<String>, chain_order: Option<i64>) -> Task {
+fn create_dummy_task(
+    id: &str,
+    parent_id: Option<String>,
+    chain_id: Option<String>,
+    chain_order: Option<i64>,
+) -> Task {
     let now = chrono::Local::now().to_rfc3339();
     Task {
         id: id.to_string(),

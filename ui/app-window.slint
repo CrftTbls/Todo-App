@@ -1,145 +1,77 @@
 import { Theme } from "Theme.slint";
-import { Button } from "std-widgets.slint";
-
 import { SlintTask } from "types.slint";
 export { SlintTask }
 
+// Base Custom Components & Shell
+import { BaseView } from "components/base/base_view.slint";
+import { CustomButton } from "components/base/custom_button.slint";
 
-import { TaskListView } from "views/task_list_view.slint";
-import { MemoView } from "views/memo_view.slint";
-import { TaskEditView } from "views/task_edit_view.slint";
-import { ChecklistView } from "views/checklist_view.slint";
-import { WbsView } from "views/wbs_view.slint";
-import { CalendarView } from "views/calendar_view.slint";
-import { TrashView } from "views/trash_view.slint";
-import { SettingsView } from "views/settings_view.slint";
-import { TutorialView } from "views/tutorial_view.slint";
+// Modals
+import { TaskDetailModal } from "components/modals/task_detail_modal.slint";
+
+// Views
+import { BentoDashboardView } from "views/bento_dashboard_view.slint";
+import { WbsChainView } from "views/wbs_chain_view.slint";
+import { MemoStockView } from "views/memo_stock_view.slint";
+import { CalendarScheduleView } from "views/calendar_schedule_view.slint";
+import { SettingsSyncView } from "views/settings_sync_view.slint";
 
 export component AppWindow inherits Window {
-    title: "Plan & Do";
+    title: "Secretarial Todo - Bento Dashboard";
     background: Theme.background;
-    min-width: 360px;
-    min-height: 520px;
-    preferred-width: 800px;
-    preferred-height: 600px;
+    min-width: Theme.window-min-width;
+    min-height: Theme.window-min-height;
+    preferred-width: Theme.window-pref-width;
+    preferred-height: Theme.window-pref-height;
     
-    // Multi-stage responsive breakpoints (SSOT)
-    out property <bool> is-mobile: root.width < Theme.mobile-width-breakpoint;
-    out property <bool> is-tablet: root.width < Theme.tablet-width-breakpoint;
-    out property <bool> is-compact: root.height < Theme.compact-height-breakpoint;
+    in-out property <string> current-view: "dashboard"; // "dashboard" | "wbs" | "memo" | "calendar" | "settings"
+    in-out property <bool> show-task-detail-modal: false;
     
-    in-out property <string> current-view: "tasks"; // "tasks" | "memo" | "edit" | "checklist" | "wbs" | "calendar" | "trash" | "settings" | "tutorial"
+    in-out property <[SlintTask]> today-tasks: [
+        { id: "1", title: "デスクトップUIのPencil再設計とプロトタイピング", status: "todo", priority: "high", due_date: "23:59 まで", parent_id: "", chain_id: "", chain_order: 0 },
+        { id: "2", title: "Rustバックエンド状態非同期整理", status: "todo", priority: "medium", due_date: "18:00 まで", parent_id: "", chain_id: "", chain_order: 0 }
+    ];
+    in-out property <[SlintTask]> upcoming-tasks: [
+        { id: "3", title: "ローカルSQLiteデータベースのインデックス最適化", status: "todo", priority: "low", due_date: "8月5日", parent_id: "", chain_id: "", chain_order: 0 }
+    ];
+    in-out property <[SlintTask]> done-tasks: [
+        { id: "4", title: "チュートリアル画面テキスト確認", status: "done", priority: "none", due_date: "", parent_id: "", chain_id: "", chain_order: 0 }
+    ];
     
-    in-out property <[SlintTask]> tasks: [];
     callback load-tasks();
-    callback create-task(string, string, string, int);
+    callback create-task(string);
     callback update-task-status(string, string);
     callback delete-task(string);
-    // Desktop Sidebar Navigation (Absolute Positioning)
-    Rectangle {
-        x: 0px;
-        y: 0px;
-        width: 220px;
-        height: root.height;
-        visible: !root.is-mobile;
-        background: Theme.card-bg;
-        VerticalLayout {
-            padding: Theme.padding-normal;
-            spacing: 24px;
-            
-            Text {
-                text: "✨ Plan & Do";
-                font-family: Theme.font-family;
-                font-size: 22px;
-                font-weight: 700;
-                color: Theme.text;
-            }
-            
-            VerticalLayout {
-                spacing: 10px;
-                
-                Button { text: "📋 タスク実行"; clicked => { root.current-view = "tasks"; } }
-                Button { text: "📝 メモ整理"; clicked => { root.current-view = "memo"; } }
-                Button { text: "⚙️ タスク詳細編集"; clicked => { root.current-view = "edit"; } }
-                Button { text: "🎒 チェックリスト"; clicked => { root.current-view = "checklist"; } }
-                Button { text: "🔗 WBSフロー"; clicked => { root.current-view = "wbs"; } }
-                Button { text: "📅 カレンダー"; clicked => { root.current-view = "calendar"; } }
-                Button { text: "🗑️ ゴミ箱"; clicked => { root.current-view = "trash"; } }
-                Button { text: "🛠️ 設定"; clicked => { root.current-view = "settings"; } }
-                Button { text: "📖 チュートリアル"; clicked => { root.current-view = "tutorial"; } }
-            }
-            Rectangle { vertical-stretch: 1; }
+
+    // BaseView 一体型基本シェルの使用
+    BaseView {
+        current-view: root.current-view;
+        dashboard-badge: "\{root.today-tasks.length}";
+        nav-changed(view) => { root.current-view = view; }
+
+        if (root.current-view == "dashboard") : BentoDashboardView {
+            today-tasks: root.today-tasks;
+            upcoming-tasks: root.upcoming-tasks;
+            done-tasks: root.done-tasks;
+            create-task(text) => { root.create-task(text); }
+            toggle-task-status(id, status) => { root.update-task-status(id, status); }
+            select-task(id) => { root.show-task-detail-modal = true; }
         }
+        if (root.current-view == "wbs") : WbsChainView {}
+        if (root.current-view == "memo") : MemoStockView {}
+        if (root.current-view == "calendar") : CalendarScheduleView {}
+        if (root.current-view == "settings") : SettingsSyncView {}
     }
     
-    // Main Screen Content Area (Absolute Positioning / Filling window)
-    VerticalLayout {
-        x: 0px;
-        y: 0px;
-        width: root.width;
-        height: root.height;
-        padding-left: root.is-mobile ? Theme.padding-normal : 220px + Theme.padding-normal;
-        padding-right: Theme.padding-normal;
-        padding-top: Theme.padding-normal;
-        padding-bottom: Theme.padding-normal;
-
-        Rectangle {
-            vertical-stretch: 1;
-            
-            if (root.current-view == "tasks") : TaskListView {
-                is-mobile: root.is-mobile;
-                tasks: root.tasks;
-                create-task(title, parent_id, chain_id, chain_order) => { root.create-task(title, parent_id, chain_id, chain_order); }
-                update-task-status(id, status) => { root.update-task-status(id, status); }
-                delete-task(id) => { root.delete-task(id); }
-            }
-            if (root.current-view == "memo") : MemoView {
-                is-mobile: root.is-mobile;
-            }
-            if (root.current-view == "edit") : TaskEditView {
-                is-mobile: root.is-mobile;
-                is-tablet: root.is-tablet;
-                is-compact: root.is-compact;
-                save-clicked => { root.current-view = "tasks"; }
-                cancel-clicked => { root.current-view = "tasks"; }
-            }
-            if (root.current-view == "checklist") : ChecklistView {
-                is-mobile: root.is-mobile;
-                back-clicked => { root.current-view = "tasks"; }
-            }
-            if (root.current-view == "wbs") : WbsView {
-                is-mobile: root.is-mobile;
-                back-clicked => { root.current-view = "tasks"; }
-            }
-            if (root.current-view == "calendar") : CalendarView {
-                is-mobile: root.is-mobile;
-                cell-clicked(date) => { root.current-view = "tasks"; }
-            }
-            if (root.current-view == "trash") : TrashView {
-                is-mobile: root.is-mobile;
-            }
-            if (root.current-view == "settings") : SettingsView {
-                is-mobile: root.is-mobile;
-            }
-            if (root.current-view == "tutorial") : TutorialView {
-                finish-clicked => { root.current-view = "tasks"; }
-            }
-        }
-        
-        // Mobile Bottom Navigation Bar
-        if (root.is-mobile) : Rectangle {
-            height: 64px;
-            background: Theme.card-bg;
-            HorizontalLayout {
-                padding: Theme.padding-normal;
-                spacing: 8px;
-                
-                Button { text: "タスク"; clicked => { root.current-view = "tasks"; } }
-                Button { text: "メモ"; clicked => { root.current-view = "memo"; } }
-                Button { text: "編集"; clicked => { root.current-view = "edit"; } }
-                Button { text: "カレンダー"; clicked => { root.current-view = "calendar"; } }
-                Button { text: "設定"; clicked => { root.current-view = "settings"; } }
-            }
+    // Full Task Detail Modal Overlay (D6)
+    if (root.show-task-detail-modal) : TaskDetailModal {
+        task-title: "デスクトップUIのPencil再設計とプロトタイピング";
+        task-status: "todo";
+        task-priority: "high";
+        due-date: "2026-08-01 23:59";
+        close => { root.show-task-detail-modal = false; }
+        save-task(status, priority, due) => {
+            root.show-task-detail-modal = false;
         }
     }
 }

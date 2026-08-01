@@ -8,14 +8,27 @@ use std::collections::HashMap;
 pub enum UiCommand {
     Ping,
     GetSettings,
-    UpdateSetting { key: String, value: String },
+    UpdateSetting {
+        key: String,
+        value: String,
+    },
     /// MarkdownディレクトリをフルスキャンしてキャッシュDBを完全に再構成（リビルド）する要求
     RebuildDatabase,
     GetTasks,
-    CreateTask { title: String, parent_id: Option<String>, chain_id: Option<String>, chain_order: Option<i64> },
+    CreateTask {
+        title: String,
+        parent_id: Option<String>,
+        chain_id: Option<String>,
+        chain_order: Option<i64>,
+    },
     UpdateTask(Box<crate::features::task::models::Task>),
-    UpdateTaskStatus { id: String, status: String },
-    DeleteTask { id: String },
+    UpdateTaskStatus {
+        id: String,
+        status: String,
+    },
+    DeleteTask {
+        id: String,
+    },
 }
 
 /// バックグラウンド監視プロセスからメインロジックへの非同期イベント通知

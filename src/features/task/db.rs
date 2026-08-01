@@ -1,6 +1,6 @@
+use super::models::{Task, TaskPriority, TaskStatus};
 use crate::errors::AppError;
-use super::models::{Task, TaskStatus, TaskPriority};
-use rusqlite::{params, Row, OptionalExtension, Transaction};
+use rusqlite::{OptionalExtension, Row, Transaction, params};
 
 pub fn row_to_task(row: &Row) -> std::result::Result<Task, rusqlite::Error> {
     Ok(Task {
@@ -59,14 +59,29 @@ pub fn insert_task(tx: &Transaction, task: &Task) -> Result<(), AppError> {
             ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22
         )",
         params![
-            task.id, task.title, task.status.as_str(), task.priority.as_str(),
-            task.created_at, task.updated_at, task.completed_at, task.due_date,
-            task.due_reminder, task.parent_id, task.chain_id, task.chain_order,
-            task.recurrence_rule, task.recurrence_interval, task.recurrence_days,
-            task.recurrence_dom, task.recurrence_limit_type, task.recurrence_limit_count,
-            task.recurrence_limit_date, task.exclude_dates, task.markdown_path,
+            task.id,
+            task.title,
+            task.status.as_str(),
+            task.priority.as_str(),
+            task.created_at,
+            task.updated_at,
+            task.completed_at,
+            task.due_date,
+            task.due_reminder,
+            task.parent_id,
+            task.chain_id,
+            task.chain_order,
+            task.recurrence_rule,
+            task.recurrence_interval,
+            task.recurrence_days,
+            task.recurrence_dom,
+            task.recurrence_limit_type,
+            task.recurrence_limit_count,
+            task.recurrence_limit_date,
+            task.exclude_dates,
+            task.markdown_path,
             task.last_device_id
-        ]
+        ],
     )?;
     Ok(())
 }
@@ -83,14 +98,28 @@ pub fn update_task(tx: &Transaction, task: &Task) -> Result<(), AppError> {
             last_device_id = ?21
         WHERE id = ?1",
         params![
-            task.id, task.title, task.status.as_str(), task.priority.as_str(),
-            task.updated_at, task.completed_at, task.due_date, task.due_reminder, 
-            task.parent_id, task.chain_id, task.chain_order, task.recurrence_rule, 
-            task.recurrence_interval, task.recurrence_days, task.recurrence_dom, 
-            task.recurrence_limit_type, task.recurrence_limit_count, 
-            task.recurrence_limit_date, task.exclude_dates, task.markdown_path, 
+            task.id,
+            task.title,
+            task.status.as_str(),
+            task.priority.as_str(),
+            task.updated_at,
+            task.completed_at,
+            task.due_date,
+            task.due_reminder,
+            task.parent_id,
+            task.chain_id,
+            task.chain_order,
+            task.recurrence_rule,
+            task.recurrence_interval,
+            task.recurrence_days,
+            task.recurrence_dom,
+            task.recurrence_limit_type,
+            task.recurrence_limit_count,
+            task.recurrence_limit_date,
+            task.exclude_dates,
+            task.markdown_path,
             task.last_device_id
-        ]
+        ],
     )?;
     Ok(())
 }
@@ -117,7 +146,8 @@ pub fn get_children(tx: &Transaction, parent_id: &str) -> Result<Vec<Task>, AppE
 }
 
 pub fn get_chain_tasks(tx: &Transaction, chain_id: &str) -> Result<Vec<Task>, AppError> {
-    let mut stmt = tx.prepare("SELECT * FROM tasks WHERE chain_id = ?1 ORDER BY chain_order ASC")?;
+    let mut stmt =
+        tx.prepare("SELECT * FROM tasks WHERE chain_id = ?1 ORDER BY chain_order ASC")?;
     let rows = stmt.query_map(params![chain_id], row_to_task)?;
     let mut tasks = Vec::new();
     for row in rows {

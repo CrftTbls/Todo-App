@@ -1,6 +1,6 @@
-use crate::errors::AppError;
+use super::db::{get_chain_tasks, get_children, get_task, update_task};
 use super::models::{Task, TaskStatus};
-use super::db::{get_children, get_task, update_task, get_chain_tasks};
+use crate::errors::AppError;
 use rusqlite::Transaction;
 
 pub fn check_and_update_parent_status(tx: &Transaction, parent_id: &str) -> Result<(), AppError> {
@@ -42,7 +42,10 @@ pub fn check_and_update_parent_status(tx: &Transaction, parent_id: &str) -> Resu
     Ok(())
 }
 
-pub fn update_children_status_on_parent_done(tx: &Transaction, parent_id: &str) -> Result<(), AppError> {
+pub fn update_children_status_on_parent_done(
+    tx: &Transaction,
+    parent_id: &str,
+) -> Result<(), AppError> {
     let now = chrono::Local::now().to_rfc3339();
     let mut children = get_children(tx, parent_id)?;
     for child in children.iter_mut() {

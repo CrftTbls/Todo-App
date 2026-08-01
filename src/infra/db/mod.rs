@@ -1,11 +1,11 @@
 //! データベースインフラマネージャ。
 //! 接続プール、コネクションカスタマイズ（WAL/タイムアウト/外部キー）を提供する。
 
-use std::path::Path;
-use r2d2::{Pool, CustomizeConnection};
+use crate::errors::{AppError, Result};
+use r2d2::{CustomizeConnection, Pool};
 use r2d2_sqlite::SqliteConnectionManager;
 use rusqlite::Connection;
-use crate::errors::{AppError, Result};
+use std::path::Path;
 
 pub type DbPool = Pool<SqliteConnectionManager>;
 
@@ -20,7 +20,7 @@ impl CustomizeConnection<Connection, rusqlite::Error> for SqliteConnectionCustom
             "PRAGMA journal_mode = WAL;
              PRAGMA busy_timeout = 5000;
              PRAGMA foreign_keys = ON;
-             PRAGMA synchronous = NORMAL;"
+             PRAGMA synchronous = NORMAL;",
         )?;
         Ok(())
     }
@@ -35,24 +35,28 @@ impl DbManager {
     /// DBの親フォルダが存在しない場合は自動生成する。
     pub fn new<P: AsRef<Path>>(db_path: P) -> Result<Self> {
         let path = db_path.as_ref();
-        
+
         // 親ディレクトリの自動作成（OSごとのディレクトリ存在エラーを防止）
-        if let Some(parent) = path.parent().filter(|p| !p.exists() && !p.as_os_str().is_empty()) {
-            std::fs::create_dir_all(parent)
-                .map_err(|e| AppError::PathError(format!("Failed to create DB directory: {}", e)))?;
+        if let Some(parent) = path
+            .parent()
+            .filter(|p| !p.exists() && !p.as_os_str().is_empty())
+        {
+            std::fs::create_dir_all(parent).map_err(|e| {
+                AppError::PathError(format!("Failed to create DB directory: {}", e))
+            })?;
         }
 
         let manager = SqliteConnectionManager::file(path);
-        
+
         let pool = Pool::builder()
             .connection_customizer(Box::new(SqliteConnectionCustomizer))
             .build(manager)?;
-            
+
         {
             let conn = pool.get().map_err(AppError::from)?;
             init_db(&conn).map_err(|e| AppError::InternalError(e.to_string()))?;
         }
-            
+
         Ok(Self { pool })
     }
 
@@ -82,14 +86,14 @@ impl DbManager {
         let mut conn = self.get_connection()?;
         // このコネクションのみ外部キーを一時オフにする
         conn.execute("PRAGMA foreign_keys = OFF;", [])?;
-        
+
         let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
         let result = f(&tx)?;
         tx.commit()?;
-        
+
         // 整合性の再チェックと外部キー制約の復旧
         conn.execute("PRAGMA foreign_keys = ON;", [])?;
-        
+
         // PRAGMA foreign_key_check は行がある場合結果が返る。
         // rusqliteで結果が存在するかを確認する。
         let mut stmt = conn.prepare("PRAGMA foreign_key_check;")?;
@@ -99,7 +103,7 @@ impl DbManager {
                 "Foreign key violation detected after rebuild batch".into(),
             ));
         }
-        
+
         Ok(result)
     }
 }
@@ -160,7 +164,7 @@ fn init_db(conn: &rusqlite::Connection) -> rusqlite::Result<()> {
             device_name TEXT NOT NULL,
             last_sync_at TEXT NOT NULL
         );
-        "
+        ",
     )?;
     Ok(())
 }

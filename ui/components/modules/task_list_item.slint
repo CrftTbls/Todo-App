@@ -9,14 +9,14 @@ export component TaskListItem inherits Rectangle {
     callback adjust-clicked();
 
     background: Theme.card-bg;
-    border-radius: Theme.border-radius-card;
-    border-width: 1px;
-    border-color: Theme.border-color;
+    border-radius: Theme.border-radius-panel;
+    border-width: Theme.stroke-normal;
+    border-color: Theme.card-stroke;
     height: 56px;
 
     HorizontalLayout {
         padding: Theme.padding-normal;
-        spacing: 12px;
+        spacing: Theme.spacing-item;
 
         checkbox-container := HorizontalLayout {
             horizontal-stretch: 1;
@@ -28,13 +28,13 @@ export component TaskListItem inherits Rectangle {
         }
 
         meta-action-container := HorizontalLayout {
-            spacing: 12px;
+            spacing: Theme.spacing-item;
             
             if (root.time-label != "") : Text {
                 text: root.time-label;
                 color: Theme.text-sub;
                 font-family: Theme.font-family;
-                font-size: 12px;
+                font-size: Theme.font-size-small;
                 vertical-alignment: center;
             }
 
@@ -45,7 +45,7 @@ export component TaskListItem inherits Rectangle {
                 Text {
                     text: "⚙️";
                     color: Theme.text-sub;
-                    font-size: 16px;
+                    font-size: Theme.font-size-title;
                     horizontal-alignment: center;
                     vertical-alignment: center;
                 }
