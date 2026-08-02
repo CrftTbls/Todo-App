@@ -1,5 +1,6 @@
 import { Theme } from "../../Theme.slint";
 import { NavItem } from "./nav_item.slint";
+import { CustomButton } from "./custom_button.slint";
 import { ViewHeader } from "../modules/view_header.slint";
 
 export component BaseView inherits Rectangle {
@@ -10,6 +11,8 @@ export component BaseView inherits Rectangle {
     
     callback nav-changed(string);
     callback action-clicked();
+    callback create-task-clicked();
+    callback create-memo-clicked();
 
     background: transparent;
     vertical-stretch: 1;
@@ -98,6 +101,30 @@ export component BaseView inherits Rectangle {
             }
             
             Rectangle { vertical-stretch: 1; }
+
+            // Universal Sidebar Bottom Create Buttons (Pencil APPROVED 構造)
+            HorizontalLayout {
+                spacing: Theme.spacing-small;
+                height: Theme.button-height-normal;
+                
+                CustomButton {
+                    horizontal-stretch: 1;
+                    text: "＋ タスク";
+                    variant: "primary";
+                    clicked => {
+                        root.create-task-clicked();
+                        root.action-clicked();
+                    }
+                }
+                CustomButton {
+                    horizontal-stretch: 1;
+                    text: "＋ メモ";
+                    variant: "secondary";
+                    clicked => {
+                        root.create-memo-clicked();
+                    }
+                }
+            }
         }
     }
 

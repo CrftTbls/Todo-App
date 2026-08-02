@@ -1,0 +1,225 @@
+import { Theme } from "../../Theme.slint";
+import { BentoCard } from "../base/bento_card.slint";
+import { CustomButton } from "../base/custom_button.slint";
+import { InnerPanel } from "../base/inner_panel.slint";
+import { Badge } from "../base/badge.slint";
+
+export component MemoDetailModal inherits Rectangle {
+    in-out property <string> memo-title: "UIデザイン改善アイデアメモ";
+    in-out property <string> memo-body: "# UIデザイン改善アイデアメモ\n\n日常の業務の中で思いついた改善案をここにリストアップしておく。\n\n- [ ] 明日15時にプロトタイプUIのレビューを行う @仕事 !高\n- [x] 既存の質素なデザインからBento Box風レイアウトへ刷新";
+    
+    callback close();
+    callback delete-memo();
+    callback convert-task(string);
+    callback save-memo(string, string);
+
+    // Modal Backdrop
+    background: #00000080;
+    
+    TouchArea {}
+
+    BentoCard {
+        width: 960px;
+        height: 640px;
+        card-fill: Theme.card-bg;
+        has-highlight: true;
+        
+        VerticalLayout {
+            padding: Theme.padding-large;
+            spacing: Theme.spacing-view;
+            vertical-stretch: 1;
+            
+            // Header Row (D7 Pencil spec)
+            HorizontalLayout {
+                alignment: space-between;
+                vertical-stretch: 0;
+                
+                Text {
+                    text: "📝 思考メモの作成・編集 & ⚡ AIタスク自動生成";
+                    font-family: Theme.font-family;
+                    font-size: Theme.font-size-title;
+                    font-weight: 700;
+                    color: Theme.text;
+                    vertical-alignment: center;
+                }
+                
+                CustomButton {
+                    text: "✕";
+                    variant: "ghost";
+                    clicked => { root.close(); }
+                }
+            }
+            
+            // 2-Column Main Layout (Left: Markdown Editor / Right: AI Task Extraction)
+            HorizontalLayout {
+                spacing: Theme.spacing-view;
+                vertical-stretch: 1;
+                
+                // Left Column: Title & Body
+                VerticalLayout {
+                    horizontal-stretch: 6;
+                    vertical-stretch: 1;
+                    spacing: Theme.spacing-card;
+                    
+                    // Memo Title Input Block
+                    VerticalLayout {
+                        spacing: Theme.spacing-small;
+                        vertical-stretch: 0;
+                        
+                        Text {
+                            text: "メモタイトル";
+                            font-family: Theme.font-family;
+                            font-size: Theme.font-size-small;
+                            font-weight: 700;
+                            color: Theme.text-sub;
+                        }
+                        
+                        InnerPanel {
+                            panel-bg: Theme.panel-bg-dark;
+                            padding-val: Theme.padding-small;
+                            
+                            Text {
+                                text: root.memo-title;
+                                font-family: Theme.font-family;
+                                font-size: Theme.font-size-body;
+                                font-weight: 700;
+                                color: Theme.text;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+                    
+                    // Body Area
+                    VerticalLayout {
+                        spacing: Theme.spacing-small;
+                        vertical-stretch: 1;
+                        
+                        Text {
+                            text: "Markdown 本文 ( - [ ] 記述でAIが自動タスク抽出 )";
+                            font-family: Theme.font-family;
+                            font-size: Theme.font-size-small;
+                            font-weight: 700;
+                            color: Theme.text-sub;
+                        }
+                        
+                        InnerPanel {
+                            panel-bg: Theme.panel-bg-dark;
+                            padding-val: Theme.padding-normal;
+                            vertical-stretch: 1;
+                            
+                            Text {
+                                text: root.memo-body;
+                                font-family: Theme.font-family;
+                                font-size: Theme.font-size-body;
+                                color: Theme.text;
+                                wrap: word-wrap;
+                            }
+                        }
+                    }
+                }
+                
+                // Right Column: AI Task Panel (Pencil D7 spec)
+                VerticalLayout {
+                    horizontal-stretch: 4;
+                    vertical-stretch: 1;
+                    spacing: Theme.spacing-card;
+                    
+                    InnerPanel {
+                        panel-bg: Theme.primary-alpha;
+                        panel-border-color: Theme.primary-border-alpha;
+                        panel-border-width: Theme.stroke-normal;
+                        padding-val: Theme.padding-card;
+                        spacing-val: Theme.spacing-item;
+                        vertical-stretch: 1;
+                        
+                        VerticalLayout {
+                            spacing: Theme.spacing-item;
+                            vertical-stretch: 1;
+                            
+                            Text {
+                                text: "⚡ AI自動検出タスク";
+                                font-family: Theme.font-family;
+                                font-size: 16px;
+                                font-weight: 700;
+                                color: Theme.primary-light;
+                            }
+                            
+                            Text {
+                                text: "メモから抽出されたタスクをワンクリックで公式登録できます。";
+                                font-family: Theme.font-family;
+                                font-size: Theme.font-size-small;
+                                color: Theme.text-sub;
+                                wrap: word-wrap;
+                            }
+                            
+                            // Detected Task Card
+                            InnerPanel {
+                                panel-bg: Theme.panel-bg-dark;
+                                padding-val: Theme.padding-normal;
+                                spacing-val: Theme.spacing-small;
+                                
+                                Text {
+                                    text: "明日15時にプロトタイプUIのレビューを行う";
+                                    font-family: Theme.font-family;
+                                    font-size: Theme.font-size-body;
+                                    font-weight: 700;
+                                    color: Theme.text;
+                                    wrap: word-wrap;
+                                }
+                                
+                                Text {
+                                    text: "📅 明日 15:00 | 🔥 高優先";
+                                    font-family: Theme.font-family;
+                                    font-size: Theme.font-size-small;
+                                    color: Theme.primary-light;
+                                }
+                                
+                                CustomButton {
+                                    text: "ワンタップでアプリタスクへ登録";
+                                    variant: "primary";
+                                    clicked => { root.convert-task("明日15時にプロトタイプUIのレビューを行う"); }
+                                }
+                            }
+                            
+                            Rectangle { vertical-stretch: 1; }
+                        }
+                    }
+                }
+            }
+            
+            // Footer Action Bar (Delete on Left, Cancel & Save on Right)
+            HorizontalLayout {
+                alignment: space-between;
+                vertical-stretch: 0;
+                
+                CustomButton {
+                    text: "🗑️ 削除";
+                    variant: "danger";
+                    clicked => {
+                        root.delete-memo();
+                        root.close();
+                    }
+                }
+                
+                HorizontalLayout {
+                    spacing: Theme.spacing-item;
+                    
+                    CustomButton {
+                        text: "キャンセル";
+                        variant: "dark";
+                        clicked => { root.close(); }
+                    }
+                    
+                    CustomButton {
+                        text: "💾 保存して閉じる";
+                        variant: "primary";
+                        clicked => {
+                            root.save-memo(root.memo-title, root.memo-body);
+                            root.close();
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

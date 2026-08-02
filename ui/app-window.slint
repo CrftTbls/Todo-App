@@ -8,6 +8,7 @@ import { CustomButton } from "components/base/custom_button.slint";
 
 // Modals
 import { TaskDetailModal } from "components/modals/task_detail_modal.slint";
+import { MemoDetailModal } from "components/modals/memo_detail_modal.slint";
 
 // Views
 import { BentoDashboardView } from "views/bento_dashboard_view.slint";
@@ -26,6 +27,7 @@ export component AppWindow inherits Window {
     
     in-out property <string> current-view: "dashboard"; // "dashboard" | "wbs" | "memo" | "calendar" | "settings"
     in-out property <bool> show-task-detail-modal: false;
+    in-out property <bool> show-memo-detail-modal: false;
     
     in-out property <[SlintTask]> today-tasks: [
         { id: "1", title: "デスクトップUIのPencil再設計とプロトタイピング", status: "todo", priority: "high", due_date: "23:59 まで", parent_id: "", chain_id: "", chain_order: 0 },
@@ -48,6 +50,15 @@ export component AppWindow inherits Window {
         current-view: root.current-view;
         dashboard-badge: "\{root.today-tasks.length}";
         nav-changed(view) => { root.current-view = view; }
+        create-task-clicked => { root.show-task-detail-modal = true; }
+        create-memo-clicked => { root.show-memo-detail-modal = true; }
+        action-clicked => {
+            if (root.current-view == "memo") {
+                root.show-memo-detail-modal = true;
+            } else {
+                root.show-task-detail-modal = true;
+            }
+        }
 
         if (root.current-view == "dashboard") : BentoDashboardView {
             today-tasks: root.today-tasks;
@@ -58,7 +69,10 @@ export component AppWindow inherits Window {
             select-task(id) => { root.show-task-detail-modal = true; }
         }
         if (root.current-view == "wbs") : WbsChainView {}
-        if (root.current-view == "memo") : MemoStockView {}
+        if (root.current-view == "memo") : MemoStockView {
+            select-memo(id) => { root.show-memo-detail-modal = true; }
+            create-memo => { root.show-memo-detail-modal = true; }
+        }
         if (root.current-view == "calendar") : CalendarScheduleView {}
         if (root.current-view == "settings") : SettingsSyncView {}
     }
@@ -72,6 +86,14 @@ export component AppWindow inherits Window {
         close => { root.show-task-detail-modal = false; }
         save-task(status, priority, due) => {
             root.show-task-detail-modal = false;
+        }
+    }
+
+    // Full Memo Detail Modal Overlay (D7)
+    if (root.show-memo-detail-modal) : MemoDetailModal {
+        close => { root.show-memo-detail-modal = false; }
+        save-memo(title, body) => {
+            root.show-memo-detail-modal = false;
         }
     }
 }

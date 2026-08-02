@@ -25,11 +25,9 @@ export component BentoDashboardView inherits Rectangle {
         spacing: Theme.spacing-view;
         vertical-stretch: 1;
         
-        // Header Bar using ViewHeader
+        // Header Bar using ViewHeader (Pencil D1 Spec: title only)
         ViewHeader {
             title: "ダッシュボード & インボックス";
-            action-button-text: "+ タスクを追加 (N)";
-            action-clicked => { root.create-task(""); }
         }
         
         // Row 1: Hero Task Card + Secretary Card (fixed height defined in Theme)

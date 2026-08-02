@@ -65,11 +65,17 @@ export component TaskDetailModal inherits Rectangle {
                 spacing: Theme.spacing-small;
                 
                 Text {
-                    text: "ステータス (状態): ※「キャンセル/一時保留」への変更は当編集画面からのみ操作可能";
+                    text: "※誤操作防止: 一時保留(canceled)状態への変更・復帰は本詳細モーダルからのみ可能です";
                     font-family: Theme.font-family;
                     font-size: Theme.font-size-small;
                     font-weight: 700;
                     color: Theme.primary-light;
+                }
+                Text {
+                    text: "ステータス (状態): ※「キャンセル/保留」への切り替えは編集画面からのみ操作可能";
+                    font-family: Theme.font-family;
+                    font-size: Theme.font-size-small;
+                    color: Theme.text-sub;
                 }
                 
                 HorizontalLayout {
@@ -88,7 +94,7 @@ export component TaskDetailModal inherits Rectangle {
                     }
                     
                     CustomButton {
-                        text: "キャンセル / 保留 (canceled)";
+                        text: "キャンセル / 一時保留 (canceled)";
                         variant: root.task-status == "canceled" ? "danger" : "dark";
                         clicked => { root.task-status = "canceled"; }
                     }

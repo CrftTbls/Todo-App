@@ -3,10 +3,12 @@ import { ViewHeader } from "../components/modules/view_header.slint";
 import { BentoCard } from "../components/base/bento_card.slint";
 import { InnerPanel } from "../components/base/inner_panel.slint";
 import { CustomButton } from "../components/base/custom_button.slint";
-import { CustomInput } from "../components/base/custom_input.slint";
 import { Badge } from "../components/base/badge.slint";
 
 export component MemoStockView inherits Rectangle {
+    callback select-memo(string);
+    callback create-memo();
+
     background: transparent;
     vertical-stretch: 1;
     
@@ -14,147 +16,245 @@ export component MemoStockView inherits Rectangle {
         spacing: Theme.spacing-view;
         vertical-stretch: 1;
         
-        ViewHeader {
-            title: "思考メモ & 一発タスク変換バナー";
-            action-button-text: "+ 新しいメモ";
+        // Header Row (Pencil D3 Spec)
+        HorizontalLayout {
+            alignment: space-between;
+            vertical-stretch: 0;
+            
+            HorizontalLayout {
+                spacing: Theme.spacing-item;
+                alignment: start;
+                
+                Text {
+                    text: "思考メモ一覧";
+                    font-family: Theme.font-family;
+                    font-size: Theme.font-size-header;
+                    font-weight: 700;
+                    color: Theme.text;
+                    vertical-alignment: center;
+                }
+                
+                Badge {
+                    text: "カードを選択してモーダルで詳細確認・編集";
+                    badge-bg: Theme.primary-alpha;
+                    badge-text-color: Theme.primary-light;
+                }
+            }
         }
         
+        // Filter & Search Bar Row
+        BentoCard {
+            vertical-stretch: 0;
+            
+            HorizontalLayout {
+                spacing: Theme.spacing-view;
+                alignment: space-between;
+                
+                // Search Mock
+                Rectangle {
+                    horizontal-stretch: 1;
+                    height: 36px;
+                    background: Theme.panel-bg-dark;
+                    border-radius: Theme.border-radius-small;
+                    border-color: Theme.card-stroke;
+                    border-width: Theme.stroke-normal;
+                    
+                    HorizontalLayout {
+                        padding-left: 12px;
+                        padding-right: 12px;
+                        
+                        Text {
+                            text: "🔍 メモの検索・タグフィルター...";
+                            font-family: Theme.font-family;
+                            font-size: Theme.font-size-small;
+                            color: Theme.text-sub;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+                
+                // Tag Filter Buttons Group
+                HorizontalLayout {
+                    spacing: Theme.spacing-small;
+                    
+                    CustomButton {
+                        text: "すべて (3)";
+                        variant: "primary";
+                    }
+                    CustomButton {
+                        text: "#仕事";
+                        variant: "dark";
+                    }
+                    CustomButton {
+                        text: "#UI改善";
+                        variant: "dark";
+                    }
+                    CustomButton {
+                        text: "#設計";
+                        variant: "dark";
+                    }
+                }
+            }
+        }
+        
+        // Memo Cards Grid (Pencil D3 3-Card Layout)
         HorizontalLayout {
             spacing: Theme.spacing-view;
             vertical-stretch: 1;
             
-            // Left Notes List
-            BentoCard {
-                horizontal-stretch: 3;
+            // MemoCard 1 (with AI Task Badge)
+            Rectangle {
+                horizontal-stretch: 1;
                 vertical-stretch: 1;
                 
-                VerticalLayout {
-                    spacing: Theme.spacing-panel;
+                TouchArea {
+                    clicked => { root.select-memo("1"); }
+                }
+                
+                BentoCard {
                     vertical-stretch: 1;
+                    has-highlight: true;
                     
-                    Text {
-                        text: "メモ一覧";
-                        font-family: Theme.font-family;
-                        font-size: Theme.font-size-body;
-                        font-weight: 700;
-                        color: Theme.text;
-                    }
-                    
-                    InnerPanel {
-                        panel-bg: Theme.panel-bg;
-                        panel-border-color: Theme.primary-border-alpha;
-                        panel-border-width: Theme.stroke-normal;
-                        padding-val: Theme.padding-panel;
-                        spacing-val: Theme.spacing-small;
+                    VerticalLayout {
+                        spacing: Theme.spacing-panel;
+                        vertical-stretch: 1;
+                        
+                        HorizontalLayout {
+                            alignment: space-between;
+                            
+                            Text {
+                                text: "💡 UIデザイン改善アイデアメモ";
+                                font-family: Theme.font-family;
+                                font-size: 16px;
+                                font-weight: 700;
+                                color: Theme.text;
+                            }
+                            
+                            Badge {
+                                text: "⚡ AI検出タスク: 1件あり";
+                                badge-bg: Theme.success-alpha;
+                                badge-text-color: Theme.success;
+                                is-bold: true;
+                            }
+                        }
+                        
+                        InnerPanel {
+                            panel-bg: Theme.panel-bg-dark;
+                            padding-val: Theme.padding-normal;
+                            vertical-stretch: 1;
+                            
+                            Text {
+                                text: "日常の業務の中で思いついた改善案をここにリストアップしておく。\n\n- [ ] 明日15時にプロトタイプUIのレビューを行う @仕事 !高\n- [x] Bento Box風レイアウトへ刷新";
+                                font-family: Theme.font-family;
+                                font-size: Theme.font-size-small;
+                                color: Theme.text-sub;
+                                wrap: word-wrap;
+                            }
+                        }
                         
                         Text {
-                            text: "💡 UIデザイン改善アイデアメモ";
+                            text: "#仕事 #UI改善 (1クリックで閲覧・編集モーダル表示)";
                             font-family: Theme.font-family;
-                            font-size: Theme.font-size-body;
+                            font-size: Theme.font-size-small;
+                            color: Theme.primary-light;
+                        }
+                    }
+                }
+            }
+            
+            // MemoCard 2
+            Rectangle {
+                horizontal-stretch: 1;
+                vertical-stretch: 1;
+                
+                TouchArea {
+                    clicked => { root.select-memo("2"); }
+                }
+                
+                BentoCard {
+                    vertical-stretch: 1;
+                    
+                    VerticalLayout {
+                        spacing: Theme.spacing-panel;
+                        vertical-stretch: 1;
+                        
+                        Text {
+                            text: "📝 システム秘書構想ノート";
+                            font-family: Theme.font-family;
+                            font-size: 16px;
                             font-weight: 700;
                             color: Theme.text;
                         }
+                        
+                        InnerPanel {
+                            panel-bg: Theme.panel-bg-dark;
+                            padding-val: Theme.padding-normal;
+                            vertical-stretch: 1;
+                            
+                            Text {
+                                text: "喋らないAI秘書のバックエンドアーキテクチャ設計。P2P同期とローカルSLM解析の統合プロトコルについてのメモ...";
+                                font-family: Theme.font-family;
+                                font-size: Theme.font-size-small;
+                                color: Theme.text-sub;
+                                wrap: word-wrap;
+                            }
+                        }
+                        
                         Text {
-                            text: "思考を遮らずにそのまま書き出し...";
+                            text: "#設計 #アーキテクチャ (1クリックで閲覧・編集モーダル表示)";
                             font-family: Theme.font-family;
                             font-size: Theme.font-size-small;
                             color: Theme.text-sub;
                         }
                     }
-                    
-                    Rectangle { vertical-stretch: 1; }
                 }
             }
             
-            // Center Editor Block
-            BentoCard {
-                horizontal-stretch: 6;
+            // MemoCard 3
+            Rectangle {
+                horizontal-stretch: 1;
                 vertical-stretch: 1;
                 
-                VerticalLayout {
-                    spacing: Theme.spacing-panel;
+                TouchArea {
+                    clicked => { root.select-memo("3"); }
+                }
+                
+                BentoCard {
                     vertical-stretch: 1;
                     
-                    Text {
-                        text: "Markdown エディタ (アイデア自由書き出し)";
-                        font-family: Theme.font-family;
-                        font-size: Theme.font-size-body;
-                        font-weight: 700;
-                        color: Theme.text;
-                    }
-                    
-                    InnerPanel {
-                        panel-bg: Theme.panel-bg-dark;
-                        padding-val: Theme.padding-card;
-                        spacing-val: Theme.spacing-item;
+                    VerticalLayout {
+                        spacing: Theme.spacing-panel;
                         vertical-stretch: 1;
                         
                         Text {
-                            text: "# UIデザイン改善アイデアメモ";
+                            text: "⚙️ ローカルSQLite DB最適化計画";
                             font-family: Theme.font-family;
-                            font-size: 18px;
+                            font-size: 16px;
                             font-weight: 700;
-                            color: Theme.primary-light;
-                        }
-                        Text {
-                            text: "日常の業務の中で思いついた改善案をここにリストアップしておく。\n\n- [ ] 明日15時にプロトタイプUIのレビューを行う @仕事 !高\n- [x] 既存の質素なデザインからBento Box風レイアウトへ刷新\n- [-] 一時保留中デザイン案の整理 (保留)";
-                            font-family: Theme.font-family;
-                            font-size: Theme.font-size-body;
                             color: Theme.text;
-                            wrap: word-wrap;
                         }
-                    }
-                }
-            }
-            
-            // Right Task Conversion Banner Panel
-            BentoCard {
-                horizontal-stretch: 3;
-                vertical-stretch: 1;
-                
-                VerticalLayout {
-                    spacing: Theme.spacing-card;
-                    vertical-stretch: 1;
-                    
-                    Text {
-                        text: "⚡ 検出されたタスクバナー";
-                        font-family: Theme.font-family;
-                        font-size: Theme.font-size-body;
-                        font-weight: 700;
-                        color: Theme.text;
-                    }
-                    
-                    InnerPanel {
-                        panel-bg: Theme.primary-alpha;
-                        panel-border-color: Theme.primary-border-alpha;
-                        panel-border-width: Theme.stroke-normal;
-                        padding-val: Theme.padding-card;
-                        spacing-val: Theme.spacing-item;
                         
-                        HorizontalLayout {
-                            alignment: start;
-                            Badge {
-                                text: "✨ メモから新規タスクを自動検出";
-                                badge-bg: transparent;
-                                badge-text-color: Theme.primary-light;
-                                is-bold: true;
+                        InnerPanel {
+                            panel-bg: Theme.panel-bg-dark;
+                            padding-val: Theme.padding-normal;
+                            vertical-stretch: 1;
+                            
+                            Text {
+                                text: "CRDTによる衝突なし自動マージとLWW(Last-Write-Wins)アルゴリズムの適用検証結果およびパフォーマンス計測結果...";
+                                font-family: Theme.font-family;
+                                font-size: Theme.font-size-small;
+                                color: Theme.text-sub;
+                                wrap: word-wrap;
                             }
                         }
+                        
                         Text {
-                            text: "「明日15時にプロトタイプUIのレビューを行う」";
+                            text: "#DB #同期 (1クリックで閲覧・編集モーダル表示)";
                             font-family: Theme.font-family;
-                            font-size: 13px;
-                            font-weight: 700;
-                            color: Theme.text;
-                            wrap: word-wrap;
-                        }
-                        CustomButton {
-                            text: "ワンタップでアプリタスクへ登録";
-                            variant: "primary";
+                            font-size: Theme.font-size-small;
+                            color: Theme.text-sub;
                         }
                     }
-                    
-                    Rectangle { vertical-stretch: 1; }
                 }
             }
         }
